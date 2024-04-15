@@ -9,19 +9,19 @@ import streamlit as st
 #pandas
 import pandas as pd
 
-class Preprocessing:
-    def __init__(self, data):
+class Preprocessing():
+    def __init__(self, data: pd.DataFrame):
         self.data = data
-        self.preprocessing_method = None
         self.scaler = None
 
-    def select_preprocessing_method(self):
-        self.preprocessing_method = st.sidebar.selectbox(
+    def select_preprocessing_method(self) -> None:
+        preprocessing_method = st.sidebar.selectbox(
             'Selecione um método de normalização:',
             ('MinMaxScaler', 'StandardScaler', 'RobustScaler', 'Normalizer', 'MaxAbsScaler')
         )
+        self.__apply_preprocessing(preprocessing_method)
 
-    def apply_preprocessing(self):
+    def __apply_preprocessing(self,preprocessing_method: str):
         scaler_map = {
             'MinMaxScaler': MinMaxScaler(),
             'StandardScaler': StandardScaler(),
@@ -30,8 +30,8 @@ class Preprocessing:
             'MaxAbsScaler': MaxAbsScaler()
         }
         
-        self.scaler = scaler_map.get(self.preprocessing_method)
+        self.scaler = scaler_map.get(preprocessing_method)
 
         if self.scaler:
-            self.normalized_data = self.scaler.fit_transform(self.data)
-            st.sidebar.write(f"Método selecionado: {self.preprocessing_method}")
+            normalized_data = self.scaler.fit_transform(self.data)
+            st.sidebar.write(f"Método selecionado: {preprocessing_method}")

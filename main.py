@@ -2,17 +2,18 @@
 import streamlit as st
 #pandas
 import pandas as pd
-from preprocessing import Preprocessing
 #matplotlib
 import matplotlib.pyplot as plt
+#python
+from preprocessing import Preprocessing
+from description import Description
 
-
-class Dashboard:
+class Dashboard():
     def __init__(self):
-        self.data = pd.read_csv('novo_arquivo.csv')
+        self.data = pd.read_csv('novo_arquivo.csv', low_memory=False)
         self.preprocessor = Preprocessing(self.data)
 
-    def __run(self):
+    def _run(self)-> None:
         st.sidebar.title("Pré-processamento de dados")
 
         if st.sidebar.button("Pré-processamento"):
@@ -20,29 +21,32 @@ class Dashboard:
                 st.sidebar.empty()
             else:
                 self.preprocessor.select_preprocessing_method()
-                self.preprocessor.apply_preprocessing()
 
         if st.sidebar.button("Descrição"):
-            st.empty() 
-            st.write("""
-            # Description Page
-            """)
+            description = Description(self.data)
+            description.run()
         
         if st.sidebar.button("Gráfico sem pré-processamento"):
             data_situation = self.data['situacao']
             self.__normalize_situation(data_situation)
             
-    def __normalize_situation(self,data_situation):
-        data = data_situation.dropna()
+    def __normalize_situation(self, data_situation: pd.DataFrame) -> None:
+        fig, ax = plt.subplots(figsize=(8, 6))
 
-        active = data == 'Ativo'
-        inactive = data == 'Inativo'
-        fig, ax = plt.subplots()
-        ax.hist([active['idade'], inactive['idade']], bins=20, label=['Ativos', 'Inativos'])
-        ax.set_xlabel('Idade')
-        ax.set_ylabel('Número de Pessoas')
-        ax.legend()
+        data = data_situation.dropna()
+        counts = data.value_counts()
+
+        counts.plot(kind='bar', ax=ax)
+
+        ax.set_xlabel('Situação')
+        ax.set_ylabel('Quantidade')
+        ax.set_title('Quantidade de Ativos e Inativos')
+
+        for i, value in enumerate(counts):
+            ax.text(i, value + 0.1, str(value), ha='center')
+
         st.pyplot(fig)
+
 if __name__ == '__main__':
     dashboard = Dashboard()
-    dashboard.__run()
+    dashboard._run()
