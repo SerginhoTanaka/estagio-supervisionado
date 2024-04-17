@@ -9,19 +9,26 @@ import streamlit as st
 #pandas
 import pandas as pd
 
+import matplotlib.pyplot as plt
+
 class Preprocessing():
     def __init__(self, data: pd.DataFrame):
         self.data = data
         self.scaler = None
-
-    def select_preprocessing_method(self) -> None:
+        
+    def _clean_data(self, data: pd.DataFrame, columns) -> pd.DataFrame:
+        for column in columns:
+            data[column] = data[column].dropna()
+        return data
+    def _select_preprocessing_method(self) -> None:
         preprocessing_method = st.sidebar.selectbox(
             'Selecione um método de normalização:',
             ('MinMaxScaler', 'StandardScaler', 'RobustScaler', 'Normalizer', 'MaxAbsScaler')
-        )
+        ) #pedir ajuda, pois ele deixa um método defalt,  não consigo escolher o método
+        print("allalalalalalla",preprocessing_method)
         self.__apply_preprocessing(preprocessing_method)
 
-    def __apply_preprocessing(self,preprocessing_method: str):
+    def __apply_preprocessing(self,preprocessing_method: str) -> None:
         scaler_map = {
             'MinMaxScaler': MinMaxScaler(),
             'StandardScaler': StandardScaler(),
@@ -31,7 +38,14 @@ class Preprocessing():
         }
         
         self.scaler = scaler_map.get(preprocessing_method)
+        
+        clenaned_data = self._clean_data(self.data, self.data.columns.tolist())
+        categorical_columns = clenaned_data.select_dtypes(include=['object']).columns
+        
+        numerical_df  =  clenaned_data.drop(columns=categorical_columns)
+        # print("asjnhajsahksdakshd",numerical_df)
 
-        if self.scaler:
-            normalized_data = self.scaler.fit_transform(self.data)
+        if self.scaler and numerical_df is not None:
+            normalized_data = self.scaler.fit_transform(numerical_df)
+            print(normalized_data)
             st.sidebar.write(f"Método selecionado: {preprocessing_method}")

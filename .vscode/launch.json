@@ -1,0 +1,8 @@
+{
+    "name": "Streamlit Debug",
+    "type": "python",
+    "request": "launch",
+    "module": "streamlit",
+    "args": ["run", "${workspaceFolder}/main.py"],
+    "justMyCode": true
+}
