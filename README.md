@@ -1,13 +1,35 @@
 # Estágio
 
 ## Installation
-python -m venv env
-env/Script/activate
-pip install -r requirements.txt
+
+To set up the project, follow these steps:
+
+1. Create a virtual environment:
+    ```bash
+    python -m venv env
+    ```
+
+2. Activate the virtual environment:
+    - **Windows**:
+        ```bash
+        env\Scripts\activate
+        ```
+    - **Unix or MacOS**:
+        ```bash
+        source env/bin/activate
+        ```
+
+3. Install the required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 ## Usage
 
-stremlit run main.py 
+To run the project, execute the following command:
+```bash
+streamlit run main.py
+
 
 ## Diagram
 
