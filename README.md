@@ -1,3 +1,18 @@
+# Estágio
+
+## Installation
+python -m venv env
+env/Script/activate
+pip install -r requirements.txt
+
+## Usage
+
+stremlit run main.py 
+
+## Diagram
+
+### Claas Diagram
+
 ```mermaid
 classDiagram
     class Preprocessing {
@@ -23,4 +38,3 @@ classDiagram
     
 Dashboard "1" -- "1" Preprocessing: Seleciona
 Dashboard "1" -- "1" Description: Escolhe
-```
