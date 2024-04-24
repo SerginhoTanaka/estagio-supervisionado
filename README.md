@@ -1,3 +1,4 @@
+```mermaid
 classDiagram
     class Preprocessing {
         - data: pd.DataFrame
@@ -22,3 +23,4 @@ classDiagram
     
 Dashboard "1" -- "1" Preprocessing: Seleciona
 Dashboard "1" -- "1" Description: Escolhe
+```
