@@ -29,7 +29,7 @@ To set up the project, follow these steps:
 To run the project, execute the following command:
 ```bash
 streamlit run main.py
-
+```
 
 ## Diagram
 
