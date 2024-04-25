@@ -10,13 +10,15 @@ import streamlit as st
 #pandas
 import pandas as pd
 
+from typing import List
+
 
 class Preprocessing():
     def __init__(self, data: pd.DataFrame):
         self.data = data
         self.scaler = None
         
-    def _clean_data(self, data: pd.DataFrame, columns) -> pd.DataFrame:
+    def _clean_data(self, data: pd.DataFrame, columns:List[str]) -> pd.DataFrame:
         for column in columns:
             data[column] = data[column].dropna()
         return data
@@ -41,6 +43,9 @@ class Preprocessing():
         clenaned_data = self._clean_data(self.data, self.data.columns.tolist())
         categorical_columns = clenaned_data.select_dtypes(include=['object']).columns
         
+        #aplicar um describe
+    
+
         numerical_df = clenaned_data.drop(columns=categorical_columns)
 
         if self.scaler and numerical_df is not None:
