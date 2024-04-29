@@ -49,11 +49,7 @@ class Dashboard():
         Generate a graph without preprocessing.
         """
         st.sidebar.write("Gráfico sem pré-processamento")
-        data_headers = self.data.columns.tolist()
-        columns = st.sidebar.multiselect(
-            'Selecione as colunas:',
-            data_headers
-        )
+        columns = Preprocessing._select_columns()
         if columns:
             cleaned_data = self.preprocessor._clean_data(self.data, columns)
             self.__plot_graph(cleaned_data, columns)
