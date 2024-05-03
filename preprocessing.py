@@ -18,10 +18,13 @@ class Preprocessing():
         self.data = data
         self.scaler = None
         
-    def _clean_data(self, data: pd.DataFrame, columns:List[str]) -> pd.DataFrame:
+    def _clean_data(self, data_to_clean: pd.DataFrame, columns:List[str]) -> pd.DataFrame:
         for column in columns:
-            data[column] = data[column].dropna()
-        return data
+            data_to_clean[column] = data_to_clean[column].dropna()
+            #retirar dados rendeundantes 
+            #dados inconsistentes 
+            #dados ruidosos
+        return data_to_clean
     
     def _select_columns(self) -> List[str]:
         columns = st.sidebar.multiselect(

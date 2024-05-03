@@ -49,12 +49,13 @@ class Dashboard():
         Generate a graph without preprocessing.
         """
         st.sidebar.write("Gráfico sem pré-processamento")
+        #pylint: disable=protected-access
         columns = Preprocessing._select_columns()
         if columns:
             cleaned_data = self.preprocessor._clean_data(self.data, columns)
             self.__plot_graph(cleaned_data, columns)
 
-    def __plot_graph(self, data, columns: Optional[List[str]] = None) -> None:
+    def __plot_graph(self, cleaned_data:pd.DataFrame , columns: Optional[List[str]] = None) -> None:
         """
         Plot a graph.
         """
@@ -62,7 +63,7 @@ class Dashboard():
             columns = ['situacao']
         for col in columns:
             fig, ax = plt.subplots(figsize=(8, 6))
-            col_data = data[col]
+            col_data = cleaned_data[col]
             counts = col_data.value_counts()
 
             counts.plot(kind='bar', ax=ax)

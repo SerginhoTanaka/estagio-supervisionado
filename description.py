@@ -14,6 +14,7 @@ class Description():
         corr_matrix = self.data.corr()
 
         # Mostra as colunas com maior correlação com a coluna "situacao"
+        #pesquisar feature selection para substituar a corr para dados categóricos
         correlation_ranking = corr_matrix['situacao'].sort_values(ascending=False)
         st.write("Ranking de Correlação com 'situacao':")
         st.write(correlation_ranking)
