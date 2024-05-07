@@ -62,3 +62,21 @@ classDiagram
     
 Dashboard "1" -- "1" Preprocessing: Selects
 Dashboard "1" -- "1" Description: Chooses
+
+```
+### Sequence Diagram
+
+```mermaid
+
+sequenceDiagram
+    participant Pesquisador
+    participant Tela steamlit
+    participant Preprocessing
+
+    Pesquisador->> Tela steamlit: select_preprocessing_method()
+    Tela steamlit->> Preprocessing: apply_preprocessing()
+    Preprocessing->> Preprocessing: clean_data()
+    Preprocessing ->>Tela steamlit: Dados descrito
+    Tela steamlit->> Pesquisador : mostrar informação
+    
+```
