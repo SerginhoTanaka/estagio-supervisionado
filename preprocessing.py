@@ -11,6 +11,7 @@ import streamlit as st
 import pandas as pd
 
 from typing import List
+from scipy.signal import savgol_filter
 
 
 class Preprocessing():
@@ -21,9 +22,10 @@ class Preprocessing():
     def _clean_data(self, data_to_clean: pd.DataFrame, columns:List[str]) -> pd.DataFrame:
         for column in columns:
             data_to_clean[column] = data_to_clean[column].dropna()
-            #retirar dados rendeundantes 
-            #dados inconsistentes 
-            #dados ruidosos
+            # TODO retirar dados rendeundantes 
+            data_to_clean[column] = savgol_filter(data_to_clean[column], 5, 2) #aplicando filtro de dados ruidosos
+            # TODO dados inconsistentes 
+     
         return data_to_clean
     
     def _select_columns(self) -> List[str]:
@@ -51,25 +53,15 @@ class Preprocessing():
         
         self.scaler = scaler_map.get(preprocessing_method)
         
-        cleaned_data = self._clean_data(self.data, self.data.columns.tolist())
         selected_columns = self._select_columns()
         
-        numerical_df = cleaned_data[selected_columns]
+        categorical_values = self.data.select_dtypes(include=['object'])
+        
 
-        categorical_columns = cleaned_data.select_dtypes(include=['object']).columns
-        if len(categorical_columns) > 0:
-            one_hot_encoder = OneHotEncoder()
-            encoded_categorical_data = one_hot_encoder.fit_transform(cleaned_data[categorical_columns])
-            st.write("Dados categóricos após One-Hot Encoding:")
-            st.write(encoded_categorical_data.toarray())
-            
-            if len(numerical_df.columns) > 0:
-                normalized_data = self.scaler.fit_transform(pd.concat([numerical_df, pd.DataFrame(encoded_categorical_data.toarray())], axis=1))
-                st.write("Dados após normalização:")
-                st.write(normalized_data)
-        else:
-            if len(numerical_df.columns) > 0:
-                normalized_data = self.scaler.fit_transform(numerical_df)
-                st.sidebar.write(f"Método selecionado: {preprocessing_method}")
-                st.write("Dados após normalização:")
-                st.write(normalized_data)
+        numerical_df = self.data.drop(columns=categorical_values.columns.tolist())
+        
+        cleaned_numerical_df = self._clean_data(numerical_df, numerical_df.columns.tolist())
+        numerical_scaled = self.scaler.fit_transform(cleaned_numerical_df)
+        cleaned_data = pd.concat([numerical_scaled, categorical_values], axis=1)
+        describe_data = numerical_scaled.describe()
+        #conversar com o ricardo 
