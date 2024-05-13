@@ -13,7 +13,7 @@ import pandas as pd
 from typing import List
 from scipy.signal import savgol_filter
 
-
+import re 
 class Preprocessing():
     def __init__(self, data: pd.DataFrame):
         self.data = data
@@ -21,11 +21,19 @@ class Preprocessing():
         
     def _clean_data(self, data_to_clean: pd.DataFrame, columns:List[str]) -> pd.DataFrame:
         for column in columns:
-            data_to_clean[column] = data_to_clean[column].dropna()
-            # TODO retirar dados rendeundantes 
-            data_to_clean[column] = savgol_filter(data_to_clean[column], 5, 2) #aplicando filtro de dados ruidosos
-            # TODO dados inconsistentes 
-     
+                try:
+                    data_to_clean[column] = data_to_clean[column].apply(lambda x: re.sub(r'[!@#$%¨&*(){}\[\]]', '', str(x)) if not isinstance(x, bool) else x)
+                    data_to_clean = data_to_clean.dropna(subset=[column])
+                    # data_to_clean[column] = data_to_clean[column].drop_duplicates() 
+                    # TODO retirar dados rendeundantes 
+                    if pd.api.types.is_numeric_dtype(data_to_clean[column]):
+                        data_to_clean[column] = savgol_filter(data_to_clean[column], 5, 2) #aplicando filtro de dados ruidosos
+                    # TODO dados inconsistentes 
+                except Exception as e:
+                    print(data_to_clean[column].name)
+                    print(e)
+                    continue
+        
         return data_to_clean
     
     def _select_columns(self) -> List[str]:
@@ -54,14 +62,15 @@ class Preprocessing():
         self.scaler = scaler_map.get(preprocessing_method)
         
         selected_columns = self._select_columns()
-        
+        st.write(len(self.data))
         categorical_values = self.data.select_dtypes(include=['object'])
         
 
         numerical_df = self.data.drop(columns=categorical_values.columns.tolist())
         
         cleaned_numerical_df = self._clean_data(numerical_df, numerical_df.columns.tolist())
+        st.write(len(cleaned_numerical_df))
         numerical_scaled = self.scaler.fit_transform(cleaned_numerical_df)
-        cleaned_data = pd.concat([numerical_scaled, categorical_values], axis=1)
-        describe_data = numerical_scaled.describe()
-        #conversar com o ricardo 
+        # cleaned_data = pd.concat([numerical_scaled, categorical_values], axis=1)
+        # describe_data = numerical_scaled.describe()
+        # #conversar com o ricardo 
