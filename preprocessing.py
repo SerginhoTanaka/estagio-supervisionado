@@ -12,29 +12,45 @@ import pandas as pd
 
 from typing import List
 from scipy.signal import savgol_filter
-
+from scipy import stats
+import numpy as np  
+import itertools
 import re 
 class Preprocessing():
     def __init__(self, data: pd.DataFrame):
         self.data = data
         self.scaler = None
         
-    def _clean_data(self, data_to_clean: pd.DataFrame, columns:List[str]) -> pd.DataFrame:
-        for column in columns:
+    def _clean_data(self, data_to_clean: pd.DataFrame, columns:List[str],cleaned_methods:List[str]) -> pd.DataFrame:
+        for column, cleaned_method in itertools.product(columns, cleaned_methods):
                 try:
-                    data_to_clean[column] = data_to_clean[column].apply(lambda x: re.sub(r'[!@#$%¨&*(){}\[\]]', '', str(x)) if not isinstance(x, bool) else x)
-                    data_to_clean = data_to_clean.dropna(subset=[column])
-                    # data_to_clean[column] = data_to_clean[column].drop_duplicates() 
-                    # TODO retirar dados rendeundantes 
-                    if pd.api.types.is_numeric_dtype(data_to_clean[column]):
-                        data_to_clean[column] = savgol_filter(data_to_clean[column], 5, 2) #aplicando filtro de dados ruidosos
-                    # TODO dados inconsistentes 
+                    if cleaned_method == 'Remover linhas com valores nulos':
+                        print(f'NUlOS Inicialmente da coluna {data_to_clean[column].name} : {data_to_clean[column].isnull().sum()}')
+                        # data_to_clean[column] = data_to_clean[column].apply(lambda x: re.sub(r'[!@#$%¨&*(){}\[\]]', '', str(x)) if not isinstance(x, bool) else x)
+                        data_to_clean = data_to_clean.dropna(subset=[column])
+                        print(f'NUlOS finais da coluna {data_to_clean[column].name} : {data_to_clean[column].isnull().sum()}')
+                    if cleaned_method == 'Remover linhas duplicadas':
+                        data_to_clean = data_to_clean.drop_duplicates()
+                    if cleaned_method == 'Remover rendundantes':
+                        numeric_data = pd.to_numeric(data_to_clean[column], errors='coerce')  # Convert to numeric, coerce errors
+                        print(numeric_data)
+                        clean_data = numeric_data[(np.abs(stats.zscore(numeric_data)) < 3).all(axis=1)]
+                        print(clean_data)
+                        
+
                 except Exception as e:
                     print(data_to_clean[column].name)
                     print(e)
                     continue
         
         return data_to_clean
+    
+    def select_clenning_method(self) -> str:
+        cleaning_method = st.sidebar.multiselect(
+            'Selecione um método de limpeza:',
+            ('Remover linhas com valores nulos', 'Remover linhas duplicadas', 'Remover rendundantes')
+        )
+        return cleaning_method
     
     def _select_columns(self) -> List[str]:
         columns = st.sidebar.multiselect(
@@ -65,10 +81,10 @@ class Preprocessing():
         st.write(len(self.data))
         categorical_values = self.data.select_dtypes(include=['object'])
         
-
+        clened_method = self.select_clenning_method()
         numerical_df = self.data.drop(columns=categorical_values.columns.tolist())
         
-        cleaned_numerical_df = self._clean_data(numerical_df, numerical_df.columns.tolist())
+        cleaned_numerical_df = self._clean_data(numerical_df, numerical_df.columns.tolist(), clened_method)
         st.write(len(cleaned_numerical_df))
         numerical_scaled = self.scaler.fit_transform(cleaned_numerical_df)
         # cleaned_data = pd.concat([numerical_scaled, categorical_values], axis=1)

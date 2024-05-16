@@ -9,7 +9,7 @@ class Description():
 
     def run(self) -> None:
         st.empty()
-        st.write("""lllll
+        st.write("""
         # Description Page
         """)
         # Calcula a matriz de correlação

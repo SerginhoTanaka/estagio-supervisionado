@@ -49,20 +49,25 @@ class Dashboard():
         Generate a graph without preprocessing.
         """
         st.sidebar.write("Gráfico sem pré-processamento")
-        #pylint: disable=protected-access
-        columns = Preprocessing._select_columns()
+        columns = self.preprocessor._select_columns()
+        method = self.preprocessor.select_clenning_method()
         if columns:
-            cleaned_data = self.preprocessor._clean_data(self.data, columns)
+            cleaned_data = self.preprocessor._clean_data(self.data, columns,method)
             self.__plot_graph(cleaned_data, columns)
 
-    def __plot_graph(self, cleaned_data:pd.DataFrame , columns: Optional[List[str]] = None) -> None:
+    def __plot_graph(self, cleaned_data: pd.DataFrame, columns: Optional[List[str]] = None) -> None:
         """
-        Plot a graph.
+            Plot a graph.
         """
         if columns is None:
             columns = ['situacao']
+        
+        num_columns = len(columns)
+        fig_width = 8 * num_columns  # Ajuste o tamanho da figura baseado no número de colunas
+        fig_height = 6
+
         for col in columns:
-            fig, ax = plt.subplots(figsize=(8, 6))
+            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
             col_data = cleaned_data[col]
             counts = col_data.value_counts()
 
@@ -76,6 +81,7 @@ class Dashboard():
                 ax.text(i, value + 0.1, str(value), ha='center')
 
             st.pyplot(fig)
+
 
 if __name__ == '__main__':
     dashboard = Dashboard()
