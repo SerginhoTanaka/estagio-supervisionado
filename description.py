@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from typing import List
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 
@@ -20,3 +21,10 @@ class Description():
         correlation_ranking = corr_matrix['situacao'].sort_values(ascending=False)
         st.write("Ranking de Correlação com 'situacao':")
         st.write(correlation_ranking)
+        
+    def _select_columns(self) -> List[str]:
+        columns = st.sidebar.multiselect(
+            "Selecione as colunas:",
+            self.data.columns.tolist()
+        )
+        return columns

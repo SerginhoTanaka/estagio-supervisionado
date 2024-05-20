@@ -21,7 +21,7 @@ class Dashboard():
     """
 
     def __init__(self):
-        self.data = pd.read_csv('novo_arquivo.csv', low_memory=False)
+        self.data = pd.read_csv('database_300.csv')
         self.preprocessor = Preprocessing(self.data)
         self.description = Description(self.data)
 
@@ -49,25 +49,20 @@ class Dashboard():
         Generate a graph without preprocessing.
         """
         st.sidebar.write("Gráfico sem pré-processamento")
-        columns = self.preprocessor._select_columns()
-        method = self.preprocessor.select_clenning_method()
-        if columns:
-            cleaned_data = self.preprocessor._clean_data(self.data, columns,method)
-            self.__plot_graph(cleaned_data, columns)
+        columns = self.description._select_columns()
+
+        self.__plot_graph(self.data, columns)
 
     def __plot_graph(self, cleaned_data: pd.DataFrame, columns: Optional[List[str]] = None) -> None:
         """
-            Plot a graph.
+        Plot a graph.
         """
         if columns is None:
             columns = ['situacao']
-        
-        num_columns = len(columns)
-        fig_width = 8 * num_columns  # Ajuste o tamanho da figura baseado no número de colunas
-        fig_height = 6
-
         for col in columns:
-            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+            fig_width = 20 / len(columns)
+            fig, ax = plt.subplots(figsize=(fig_width, 6))
+
             col_data = cleaned_data[col]
             counts = col_data.value_counts()
 
@@ -77,11 +72,10 @@ class Dashboard():
             ax.set_ylabel('Quantidade')
             ax.set_title(f'Quantidade de {col}')
 
-            for i, value in enumerate(counts):
-                ax.text(i, value + 0.1, str(value), ha='center')
+            for i, v in enumerate(counts.values):
+                ax.text(i, v + 0.1, str(v), ha='center')
 
             st.pyplot(fig)
-
 
 if __name__ == '__main__':
     dashboard = Dashboard()
