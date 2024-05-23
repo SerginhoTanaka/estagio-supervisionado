@@ -91,6 +91,7 @@ class Preprocessing():
             
             scaled_data = self.scaler.fit_transform(df[['cdn_cliente']])     
             st.write("cdn_cliente normalizado:")
+            st.write(f"Normalizado pelo método {preprocessing_method}:")
             st.write(scaled_data)
         # cleaned_numerical_ = self._clean_data(numerical_df, numerical_df.columns.tolist(), clened_method)
         

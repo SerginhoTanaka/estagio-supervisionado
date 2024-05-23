@@ -11,6 +11,7 @@ from description import Description
 from typing import List
 from typing import Optional
 
+import numpy as np
 """
 This module provides a Dashboard class for data preprocessing and visualization.
 """
@@ -53,29 +54,37 @@ class Dashboard():
 
         self.__plot_graph(self.data, columns)
 
-    def __plot_graph(self, cleaned_data: pd.DataFrame, columns: Optional[List[str]] = None) -> None:
+    def __plot_graph(self, not_cleaned_data: pd.DataFrame, columns: Optional[List[str]] = None) -> None:
         """
         Plot a graph.
         """
+        
         if columns is None:
             columns = ['situacao']
-        for col in columns:
-            fig_width = 20 / len(columns)
-            fig, ax = plt.subplots(figsize=(fig_width, 6))
+        numeric_columns = not_cleaned_data.select_dtypes(include=np.number).columns
+        selected_numeric_columns = [col for col in numeric_columns if col in columns]
+        non_numeric_columns = [col for col in columns if col not in selected_numeric_columns]
+        if selected_numeric_columns:
+            for col in selected_numeric_columns:
+                st.write(not_cleaned_data[col].describe())
+        if non_numeric_columns:
+            for col in non_numeric_columns:
+                fig_width = 20 / len(columns)
+                fig, ax = plt.subplots(figsize=(fig_width, 6))
 
-            col_data = cleaned_data[col]
-            counts = col_data.value_counts()
+                col_data = not_cleaned_data[col]
+                counts = col_data.value_counts()
 
-            counts.plot(kind='bar', ax=ax)
+                counts.plot(kind='bar', ax=ax)
 
-            ax.set_xlabel(col)
-            ax.set_ylabel('Quantidade')
-            ax.set_title(f'Quantidade de {col}')
+                ax.set_xlabel(col)
+                ax.set_ylabel('Quantidade')
+                ax.set_title(f'Quantidade de {col}')
 
-            for i, v in enumerate(counts.values):
-                ax.text(i, v + 0.1, str(v), ha='center')
+                for i, v in enumerate(counts.values):
+                    ax.text(i, v + 0.1, str(v), ha='center')
 
-            st.pyplot(fig)
+                st.pyplot(fig)
 
 if __name__ == '__main__':
     dashboard = Dashboard()
