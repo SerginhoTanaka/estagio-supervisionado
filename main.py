@@ -12,9 +12,7 @@ from typing import List
 from typing import Optional
 
 import numpy as np
-"""
-This module provides a Dashboard class for data preprocessing and visualization.
-"""
+
 
 class Dashboard():
     """
@@ -33,7 +31,7 @@ class Dashboard():
         st.sidebar.title("Pré-processamento de dados")
         selected_option = st.sidebar.radio(
             "Selecione uma opção",
-            ["Pré-processamento", "Descrição", "Gráfico sem pré-processamento"]
+            ["Pré-processamento", "Descrição", "Análise sem pré-processamento"]
         )
 
         if selected_option == "Pré-processamento":
@@ -42,14 +40,14 @@ class Dashboard():
         elif selected_option == "Descrição":
             self.description.run()
 
-        elif selected_option == "Gráfico sem pré-processamento":
+        elif selected_option == "Análise sem pré-processamento":
             self.__generate_graph()
 
     def __generate_graph(self) -> None:
         """
         Generate a graph without preprocessing.
         """
-        st.sidebar.write("Gráfico sem pré-processamento")
+        st.sidebar.write("Análise sem pré-processamento")
         columns = self.description._select_columns()
 
         self.__plot_graph(self.data, columns)
