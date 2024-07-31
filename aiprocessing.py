@@ -33,9 +33,7 @@ class AiProcessing:
         
         if preprocessing_option == 'Sim':
             self.normalized_data = self.__preprocessing()
-        else:
-            self.normalized_data = self.data
-      
+ 
         if method == 'Regressão':
             self.__regression()
         elif method == 'Classificação':
@@ -45,7 +43,8 @@ class AiProcessing:
         """
         Método para executar o pré-processamento dos dados.
         """
-        processed_data = Preprocessing(self.data).run()
+        preprocessing = Preprocessing(self.data)
+        processed_data = preprocessing.run()
         st.write('Dados pré-processados!')
         return processed_data
 
