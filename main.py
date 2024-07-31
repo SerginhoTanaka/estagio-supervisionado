@@ -1,21 +1,9 @@
-# streamlit
 import streamlit as st
-# Pandas
 import pandas as pd
-# Matplotlib
 import matplotlib.pyplot as plt
-# Custom modules
-from preprocessing import Preprocessing
-from description import Description
-from aiprocessing import AiProcessing
-# Typing
-from typing import List
-from typing import Optional
-
 import numpy as np
-
-import base64
-
+from typing import List, Optional
+# Removed global imports for potential circular dependency issues
 
 class Dashboard:
     """
@@ -23,9 +11,13 @@ class Dashboard:
     """
 
     def __init__(self):
-        self.data = pd.read_csv('database_300.csv')
+        # Initialize with an empty DataFrame if no data is loaded
+        self.data = st.session_state.get('data', pd.DataFrame())
+        from preprocessing import Preprocessing  # Local import
         self.preprocessor = Preprocessing(self.data)
+        from description import Description  # Local import
         self.description = Description(self.data)
+        from aiprocessing import AiProcessing  # Local import
         self.aiprocessing = AiProcessing(self.data)
 
     def run(self) -> None:
@@ -52,36 +44,51 @@ class Dashboard:
         """
         Upload a file.
         """
-        file = st.file_uploader("Upload file", type={"csv", "xlsx"})
-        if file is not None and file.name.endswith('.csv'):
-            self.data = pd.read_csv(file)
-        elif file is not None and file.name.endswith('.xlsx'):
-            self.data = pd.read_excel(file)
-        elif self.data is not None:
-            # st.write("Arquivo carregado com sucesso!")
-            st.write(self.data.head()) 
+        file = st.file_uploader("Upload arquivo CSV", type="csv")
+        if file is not None:
+            try:
+                self.data = pd.read_csv(file)
+                st.session_state.data = self.data  # Save data to session state
+                st.write("Arquivo CSV carregado com sucesso!")
+                st.write(self.data.head())
+            except Exception as e:
+                st.error(f"Erro ao carregar o arquivo: {e}")
+
+    @staticmethod
+    @st.cache_data
+    def convert_df(_df: pd.DataFrame) -> bytes:
+        return _df.to_csv(index=False).encode('utf-8')
+    
+    def download_spreadsheet(self, df: pd.DataFrame, filename: str) -> None:
+        """
+        Download a spreadsheet.
+        """
+        try:
+            csv = self.convert_df(df)
+            st.download_button(
+                label="Baixar Planilha",
+                data=csv,
+                file_name=filename,
+                mime="text/csv"
+            )
+        except Exception as e:
+            st.error(f"Erro ao baixar a planilha: {e}")
+
     def __merge_spreadsheets(self) -> None:
         """
         Merge two spreadsheets based on user-selected keys.
         """
-        st.subheader("Carregar Planilha 1:")
-        file1 = st.file_uploader("Upload planilha 1", type={"csv", "xlsx"})
+        st.subheader("Carregar Planilha 1 (CSV somente):")
+        file1 = st.file_uploader("Upload planilha 1", type="csv", key="file1")
 
-        st.subheader("Carregar Planilha 2:")
-        file2 = st.file_uploader("Upload planilha 2", type={"csv", "xlsx"})
+        st.subheader("Carregar Planilha 2 (CSV somente):")
+        file2 = st.file_uploader("Upload planilha 2", type="csv", key="file2")
 
         if file1 is not None and file2 is not None:
-            if file1.name.endswith('.csv'):
-               data1 = pd.read_csv(file1)
-            elif file1.name.endswith('.xlsx'):
-                data1 = pd.read_excel(file1)
-
-            if file2.name.endswith('.csv'):
+            try:
+                data1 = pd.read_csv(file1)
                 data2 = pd.read_csv(file2)
-            elif file2.name.endswith('.xlsx'):
-                data2 = pd.read_excel(file2)
 
-            if data1 is not None and data2 is not None:
                 st.subheader("Selecionar chave de junção para cada planilha:")
                 key_column1 = st.selectbox("Selecionar chave de junção para Planilha 1", data1.columns)
                 key_column2 = st.selectbox("Selecionar chave de junção para Planilha 2", data2.columns)
@@ -90,10 +97,15 @@ class Dashboard:
                     merged_data = pd.merge(data1, data2, how='inner', left_on=key_column1, right_on=key_column2)
                     st.write("Planilhas mescladas com sucesso!")
                     st.write(merged_data.head())
-                    csv = merged_data.to_csv(index=False)
-                    b64 = base64.b64encode(csv.encode()).decode()
-                    href = f'<a href="data:file/csv;base64,{b64}" download="planilhas_mescladas.csv">Download Planilhas Mescladas</a>'
-                    st.markdown(href, unsafe_allow_html=True)
+                    st.write(f"len(merged_data): {len(merged_data)}")
+                    
+                    if not merged_data.empty:
+                        self.download_spreadsheet(merged_data, "merged_data.csv")
+                    else:
+                        st.write("O DataFrame está vazio. Nenhum arquivo CSV será gerado.")
+            except Exception as e:
+                st.error(f"Erro ao processar as planilhas: {e}")
+
     def __generate_graph(self) -> None:
         """
         Generate a graph without preprocessing.
@@ -107,7 +119,6 @@ class Dashboard:
         """
         Plot a graph.
         """
-        
         if columns is None:
             columns = ['situacao']
         numeric_columns = not_cleaned_data.select_dtypes(include=np.number).columns

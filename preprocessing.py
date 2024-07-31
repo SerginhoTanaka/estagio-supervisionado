@@ -17,7 +17,7 @@ from scipy.signal import savgol_filter
 from scipy import stats
 import numpy as np  
 
-
+from main import Dashboard
 class Preprocessing:
     def __init__(self, data: pd.DataFrame):
         self.data = data
@@ -116,6 +116,8 @@ class Preprocessing:
         st.write(self.data.count())
         st.write("Tabela após pré-processamento:")
         st.write(new_data.count())
+        Dashboard().download_spreadsheet(new_data, "preprocessed_data.csv")
+        
 
     def __clean_null(self, df: pd.DataFrame) -> pd.DataFrame:
         """
