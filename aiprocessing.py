@@ -23,6 +23,7 @@ class AiProcessing:
         self.data = data
         self.ai = None
         self.normalized_data = None
+        self.target_column = None
 
     def run(self) -> None:
         """
@@ -54,6 +55,7 @@ class AiProcessing:
         Método para executar a regressão.
         """
         st.subheader('Modelos de Regressão Disponíveis:')
+        self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', self.data.columns)
         self.ai = st.selectbox('Selecione um modelo de regressão:', ('', 'Linear Regression', 'SVR', 'Random Forest'))
         
         regression_option = {
@@ -87,11 +89,11 @@ class AiProcessing:
         Método para executar a regressão linear.
         """
         if self.normalized_data is None:
-            X = self.data.iloc[:, :-1]
-            y = self.data.iloc[:, -1]
+            X = self.data.drop(columns=[self.target_column])
+            y = self.data[self.target_column]
         else:
-            X = self.normalized_data.iloc[:, :-1]
-            y = self.normalized_data.iloc[:, -1]
+            X = self.normalized_data.drop(columns=[self.target_column])
+            y = self.normalized_data[self.target_column]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         model = LinearRegression()
@@ -107,11 +109,11 @@ class AiProcessing:
         Método para executar o SVR.
         """
         if self.normalized_data is None:
-            X = self.data.iloc[:, :-1]
-            y = self.data.iloc[:, -1]
+            X = self.data.drop(columns=[self.target_column])
+            y = self.data[self.target_column]
         else:
-            X = self.normalized_data.iloc[:, :-1]
-            y = self.normalized_data.iloc[:, -1]
+            X = self.normalized_data.drop(columns=[self.target_column])
+            y = self.normalized_data[self.target_column]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         model = SVR()
@@ -127,11 +129,11 @@ class AiProcessing:
         Método para executar o Random Forest para regressão.
         """
         if self.normalized_data is None:
-            X = self.data.iloc[:, :-1]
-            y = self.data.iloc[:, -1]
+            X = self.data.drop(columns=[self.target_column])
+            y = self.data[self.target_column]
         else:
-            X = self.normalized_data.iloc[:, :-1]
-            y = self.normalized_data.iloc[:, -1]
+            X = self.normalized_data.drop(columns=[self.target_column])
+            y = self.normalized_data[self.target_column]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         model = RandomForestRegressor()
