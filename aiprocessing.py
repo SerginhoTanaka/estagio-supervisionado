@@ -45,6 +45,7 @@ class AiProcessing:
         """
         preprocessing = Preprocessing(self.data)
         processed_data = preprocessing.run()
+        print(processed_data)
         st.write('Dados pré-processados!')
         return processed_data
 
@@ -85,8 +86,12 @@ class AiProcessing:
         """
         Método para executar a regressão linear.
         """
-        X = self.normalized_data.iloc[:, :-1]
-        y = self.normalized_data.iloc[:, -1]
+        if self.normalized_data is None:
+            X = self.data.iloc[:, :-1]
+            y = self.data.iloc[:, -1]
+        else:
+            X = self.normalized_data.iloc[:, :-1]
+            y = self.normalized_data.iloc[:, -1]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         model = LinearRegression()
@@ -96,13 +101,17 @@ class AiProcessing:
         mse = mean_squared_error(y_test, predictions)
         st.write(f'MSE: {mse}')
         st.write('Predições:', predictions)
-    
+
     def __run_svr(self) -> None:
         """
         Método para executar o SVR.
         """
-        X = self.normalized_data.iloc[:, :-1]
-        y = self.normalized_data.iloc[:, -1]
+        if self.normalized_data is None:
+            X = self.data.iloc[:, :-1]
+            y = self.data.iloc[:, -1]
+        else:
+            X = self.normalized_data.iloc[:, :-1]
+            y = self.normalized_data.iloc[:, -1]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         model = SVR()
@@ -117,8 +126,12 @@ class AiProcessing:
         """
         Método para executar o Random Forest para regressão.
         """
-        X = self.normalized_data.iloc[:, :-1]
-        y = self.normalized_data.iloc[:, -1]
+        if self.normalized_data is None:
+            X = self.data.iloc[:, :-1]
+            y = self.data.iloc[:, -1]
+        else:
+            X = self.normalized_data.iloc[:, :-1]
+            y = self.normalized_data.iloc[:, -1]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         model = RandomForestRegressor()
@@ -128,8 +141,7 @@ class AiProcessing:
         mse = mean_squared_error(y_test, predictions)
         st.write(f'MSE: {mse}')
         st.write('Predições:', predictions)
-    
-    # Métodos de classificação ainda precisam ser implementados
+
     def __run_logistic_regression(self) -> None:
         """
         Método para executar a regressão logística.

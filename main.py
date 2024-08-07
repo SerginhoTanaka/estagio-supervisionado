@@ -11,13 +11,12 @@ class Dashboard:
     """
 
     def __init__(self):
-        # Initialize with an empty DataFrame if no data is loaded
         self.data = st.session_state.get('data', pd.DataFrame())
-        from preprocessing import Preprocessing  # Local import
+        from preprocessing import Preprocessing 
         self.preprocessor = Preprocessing(self.data)
-        from description import Description  # Local import
+        from description import Description 
         self.description = Description(self.data)
-        from aiprocessing import AiProcessing  # Local import
+        from aiprocessing import AiProcessing 
         self.aiprocessing = AiProcessing(self.data)
 
     def run(self) -> None:
@@ -48,7 +47,7 @@ class Dashboard:
         if file is not None:
             try:
                 self.data = pd.read_csv(file)
-                st.session_state.data = self.data  # Save data to session state
+                st.session_state.data = self.data  
                 st.write("Arquivo CSV carregado com sucesso!")
                 st.write(self.data.head())
             except Exception as e:
@@ -78,10 +77,10 @@ class Dashboard:
         """
         Merge two spreadsheets based on user-selected keys.
         """
-        st.subheader("Carregar Planilha 1 (CSV somente):")
+        st.subheader("Carregar Planilha 1:")
         file1 = st.file_uploader("Upload planilha 1", type="csv", key="file1")
 
-        st.subheader("Carregar Planilha 2 (CSV somente):")
+        st.subheader("Carregar Planilha 2:")
         file2 = st.file_uploader("Upload planilha 2", type="csv", key="file2")
 
         if file1 is not None and file2 is not None:
@@ -119,8 +118,7 @@ class Dashboard:
         """
         Plot a graph.
         """
-        if columns is None:
-            columns = ['situacao']
+   
         numeric_columns = not_cleaned_data.select_dtypes(include=np.number).columns
         selected_numeric_columns = [col for col in numeric_columns if col in columns]
         non_numeric_columns = [col for col in columns if col not in selected_numeric_columns]
