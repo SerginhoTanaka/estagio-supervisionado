@@ -61,7 +61,7 @@ class Preprocessing:
 
     def __apply_preprocessing(self) -> pd.DataFrame:
         """
-        Aplica os métodos de limpeza e normalização selecionados aos dados.
+        Aplica os métodos de limpeza, normalização e pré-processamento aos dados.
 
         Returns:
             pd.DataFrame: DataFrame após aplicação dos métodos.
@@ -87,23 +87,56 @@ class Preprocessing:
                 elif method == 'Remover ruídos':
                     df = self.__clean_noise(df)
 
-        # Aplicar normalização
-        if self.scaler != 'nenhum' and scaler:
-            columns_to_normalize = df.columns[df.dtypes != object]  # Seleciona apenas colunas numéricas
+        # Separar as colunas numéricas
+        numerical_df = df.select_dtypes(exclude=['object'])
 
-            if len(columns_to_normalize) > 0:
-                for col in columns_to_normalize:
-                    scaled_data = scaler.fit_transform(df[[col]])
-                    df[col] = scaled_data
+        # Aplicar normalização às colunas numéricas
+        if self.scaler != 'nenhum' and scaler:
+            if not numerical_df.empty:
+                for col in numerical_df.columns:
+                    scaled_data = scaler.fit_transform(numerical_df[[col]])
+                    numerical_df[col] = scaled_data
                     st.write(f"{col} normalizado pelo método {self.scaler}:")
-                    st.write(df[[col]])
+                    st.write(numerical_df[[col]])
             else:
                 st.write("Não há colunas numéricas para normalização.")
         else:
             st.write("Nenhum método de normalização selecionado.")
 
-        return df
+        # Passar os dados normalizados para o processamento categórico
+        final_df = self.preprocess_categorical_data(df, numerical_df)
 
+        st.write("Dados após pré-processamento:")
+        st.write(final_df)
+
+        return final_df
+
+    def preprocess_categorical_data(self, df: pd.DataFrame, numerical_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Método para pré-processar dados categóricos e concatenar com os dados numéricos.
+
+        Args:
+            df (pd.DataFrame): DataFrame original contendo colunas categóricas.
+            numerical_df (pd.DataFrame): DataFrame com colunas numéricas pré-processadas.
+
+        Returns:
+            pd.DataFrame: DataFrame após pré-processamento e concatenação.
+        """
+        categorical_df = df.select_dtypes(include=['object'])
+
+        if not categorical_df.empty:
+            enc = OneHotEncoder(sparse_output=False)  # `sparse_output=False` para retornar um DataFrame
+            encoded_data = pd.DataFrame(enc.fit_transform(categorical_df), columns=enc.get_feature_names_out(categorical_df.columns))
+            
+            st.write(encoded_data)
+
+            # Concatenar dados numéricos e categóricos
+            final_df = pd.concat([numerical_df, encoded_data], axis=1)
+        else:
+            st.write("Não há colunas categóricas para pré-processar.")
+            final_df = numerical_df
+
+        return final_df
 
     def __show(self, new_data: pd.DataFrame) -> None:
         """

@@ -16,7 +16,7 @@ from sklearn.svm import SVR
 from sklearn.ensemble import RandomForestRegressor
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, accuracy_score
 
 class AiProcessing:
     def __init__(self, data: pd.DataFrame):
@@ -34,7 +34,11 @@ class AiProcessing:
         
         if preprocessing_option == 'Sim':
             self.normalized_data = self.__preprocessing()
- 
+        else:
+            numerical_df = self.data.select_dtypes(exclude=['object'])
+            preprocessing = Preprocessing(self.data)
+            final_data = preprocessing.preprocess_categorical_data(self.data,numerical_df)
+            self.data = final_data
         if method == 'Regressão':
             self.__regression()
         elif method == 'Classificação':
@@ -46,124 +50,82 @@ class AiProcessing:
         """
         preprocessing = Preprocessing(self.data)
         processed_data = preprocessing.run()
-        print(processed_data)
         st.write('Dados pré-processados!')
         return processed_data
 
     def __regression(self) -> None:
         """
-        Método para executar a regressão.
+        Método genérico para executar a regressão.
         """
         st.subheader('Modelos de Regressão Disponíveis:')
         self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', self.data.columns)
-        self.ai = st.selectbox('Selecione um modelo de regressão:', ('', 'Linear Regression', 'SVR', 'Random Forest'))
-        
-        regression_option = {
-            'Linear Regression': self.__run_linear_regression,
-            'SVR': self.__run_svr,
-            'Random Forest': self.__run_random_forest_regression
-        }
-        
+        self.ai = st.selectbox('Selecione um modelo de regressão:', 
+                               ('', 'Linear Regression', 'SVR', 'Random Forest'))
+
         if self.ai:
-            regression_option[self.ai]()
+            model = self.__get_model()
+            self.__train_and_evaluate(model, regression=True)
     
     def __classification(self) -> None:
         """
-        Método para executar a classificação.
+        Método genérico para executar a classificação.
         """
         st.subheader('Modelos de Classificação Disponíveis:')
-        self.ai = st.selectbox('Selecione um modelo de classificação:', ('', 'Logistic Regression', 'KNN', 'Random Forest', 'Decision Tree'))
-        
-        classification_option = {
-            'Logistic Regression': self.__run_logistic_regression,
-            'KNN': self.__run_knn,
-            'Random Forest': self.__run_random_forest_classification,
-            'Decision Tree': self.__run_decision_tree
-        }
-        
+        self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', self.data.columns)
+        self.ai = st.selectbox('Selecione um modelo de classificação:', 
+                               ('', 'Logistic Regression', 'KNN', 'Random Forest', 'Decision Tree'))
+
         if self.ai:
-            classification_option[self.ai]()
+            model = self.__get_model()
+            self.__train_and_evaluate(model, regression=False)
     
-    def __run_linear_regression(self) -> None:
+    def __get_model(self):
         """
-        Método para executar a regressão linear.
+        Retorna o modelo de IA baseado na escolha do usuário.
         """
-        if self.normalized_data is None:
-            X = self.data.drop(columns=[self.target_column])
-            y = self.data[self.target_column]
-        else:
-            X = self.normalized_data.drop(columns=[self.target_column])
-            y = self.normalized_data[self.target_column]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        model = LinearRegression()
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
-        
-        mse = mean_squared_error(y_test, predictions)
-        st.write(f'MSE: {mse}')
-        st.write('Predições:', predictions)
+        models = {
+            'Linear Regression': LinearRegression(),
+            'SVR': SVR(),
+            'Random Forest': RandomForestRegressor(),
+            'Logistic Regression': LogisticRegression(),
+            'KNN': KNeighborsClassifier(),
+            # 'Random Forest Classifier': RandomForestClassifier(),
+            'Decision Tree': DecisionTreeClassifier()
+        }
+        return models[self.ai]
 
-    def __run_svr(self) -> None:
+    def __split_data(self) -> (pd.DataFrame, pd.Series):
         """
-        Método para executar o SVR.
+        Método auxiliar para separar as colunas X e y do DataFrame.
         """
-        if self.normalized_data is None:
-            X = self.data.drop(columns=[self.target_column])
-            y = self.data[self.target_column]
-        else:
-            X = self.normalized_data.drop(columns=[self.target_column])
-            y = self.normalized_data[self.target_column]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        model = SVR()
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
-        
-        mse = mean_squared_error(y_test, predictions)
-        st.write(f'MSE: {mse}')
-        st.write('Predições:', predictions)
-    
-    def __run_random_forest_regression(self) -> None:
-        """
-        Método para executar o Random Forest para regressão.
-        """
-        if self.normalized_data is None:
-            X = self.data.drop(columns=[self.target_column])
-            y = self.data[self.target_column]
-        else:
-            X = self.normalized_data.drop(columns=[self.target_column])
-            y = self.normalized_data[self.target_column]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        model = RandomForestRegressor()
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
-        
-        mse = mean_squared_error(y_test, predictions)
-        st.write(f'MSE: {mse}')
-        st.write('Predições:', predictions)
+        data_to_use = self.normalized_data if self.normalized_data is not None else self.data
+        X = data_to_use.drop(columns=[self.target_column])
+        y = data_to_use[self.target_column]
+        return X, y
 
-    def __run_logistic_regression(self) -> None:
+    def __train_and_evaluate(self, model, regression: bool) -> None:
         """
-        Método para executar a regressão logística.
+        Método para treinar e avaliar o modelo selecionado.
         """
-        st.write('Em desenvolvimento...')  # Implemente a lógica para regressão logística aqui
-    
-    def __run_knn(self) -> None:
-        """
-        Método para executar o KNN para classificação.
-        """
-        st.write('Em desenvolvimento...')  # Implemente a lógica para KNN aqui
-    
-    def __run_random_forest_classification(self) -> None:
-        """
-        Método para executar o Random Forest para classificação.
-        """
-        st.write('Em desenvolvimento...')  # Implemente a lógica para Random Forest de classificação aqui
-    
-    def __run_decision_tree(self) -> None:
-        """
-        Método para executar a árvore de decisão para classificação.
-        """
-        st.write('Em desenvolvimento...')  # Implemente a lógica para árvore de decisão aqui
+        X, y = self.__split_data()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        model.fit(X_train, y_train)
+        predictions = model.predict(X_test)
+        
+        # Exibe métricas de desempenho
+        if regression:
+            mse = mean_squared_error(y_test, predictions)
+            st.write(f'MSE: {mse}')
+        else:
+            accuracy = accuracy_score(y_test, predictions)
+            st.write(f'Acurácia: {accuracy}')
+        
+        # Exibe tabela com y_test e as previsões
+        results_df = pd.DataFrame({'Real': y_test, 'Predição': predictions})
+
+        # Redefinindo o índice para removê-lo
+        results_df.reset_index(drop=True, inplace=True)
+
+        st.write('Resultados:')
+        st.dataframe(results_df, use_container_width=True)
