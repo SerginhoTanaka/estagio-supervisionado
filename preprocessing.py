@@ -1,32 +1,27 @@
-# sklearn methods
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import Normalizer
-from sklearn.preprocessing import MaxAbsScaler
-from sklearn.preprocessing import OneHotEncoder
-
-# streamlit
-import streamlit as st
-
-# pandas
+from typing import List, Optional
 import pandas as pd
-
-from typing import List
-from scipy.signal import savgol_filter
+import numpy as np
+import streamlit as st
+from sklearn.preprocessing import (
+    MinMaxScaler, StandardScaler, RobustScaler, Normalizer, MaxAbsScaler, OneHotEncoder
+)
 from scipy import stats
-import numpy as np  
-
+from scipy.signal import savgol_filter
 from main import Dashboard
+
+
 class Preprocessing:
     def __init__(self, data: pd.DataFrame):
-        self.data = data
-        self.scaler = None
-        self.cleaning_methods = None
+        self.data: pd.DataFrame = data
+        self.scaler: Optional[str] = None
+        self.cleaning_methods: Optional[List[str]] = None
 
-    def run(self):
+    def run(self) -> Optional[pd.DataFrame]:
         """
         Método principal para executar o fluxo de pré-processamento.
+
+        Returns:
+            Optional[pd.DataFrame]: DataFrame pré-processado, ou None se nenhuma ação for realizada.
         """
         self.select_preprocessing_method()
         self.select_cleaning_method()
@@ -36,6 +31,7 @@ class Preprocessing:
             if new_data is not None and show:
                 self.__show(new_data)
             return new_data
+        return None
 
     def select_cleaning_method(self) -> None:
         """
@@ -56,7 +52,7 @@ class Preprocessing:
             'Selecione um método de normalização:',
             ('nenhum', 'MinMaxScaler', 'StandardScaler', 'RobustScaler', 'Normalizer', 'MaxAbsScaler'),
             index=0
-        ) 
+        )
         self.scaler = preprocessing_method
 
     def __apply_preprocessing(self) -> pd.DataFrame:
@@ -73,10 +69,10 @@ class Preprocessing:
             'Normalizer': Normalizer(),
             'MaxAbsScaler': MaxAbsScaler()
         }
-        
+
         scaler = scaler_map.get(self.scaler)
         df = self.data.copy()
-        
+
         # Aplicar limpeza
         if 'nenhum' not in self.cleaning_methods:
             for method in self.cleaning_methods:
@@ -127,7 +123,7 @@ class Preprocessing:
         if not categorical_df.empty:
             enc = OneHotEncoder(sparse_output=False)  # `sparse_output=False` para retornar um DataFrame
             encoded_data = pd.DataFrame(enc.fit_transform(categorical_df), columns=enc.get_feature_names_out(categorical_df.columns))
-            
+
             st.write(encoded_data)
 
             # Concatenar dados numéricos e categóricos
@@ -150,7 +146,6 @@ class Preprocessing:
         st.write("Tabela após pré-processamento:")
         st.write(new_data.count())
         Dashboard().download_spreadsheet(new_data, "preprocessed_data.csv")
-        
 
     def __clean_null(self, df: pd.DataFrame) -> pd.DataFrame:
         """
