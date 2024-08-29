@@ -36,11 +36,10 @@ class AiProcessing:
             self.normalized_data = self.__preprocessing()
         elif preprocessing_option == 'Não':
             numerical_df: pd.DataFrame = self.data.select_dtypes(exclude=['object'])
-
             preprocessing = Preprocessing(self.data)
             final_data: pd.DataFrame = preprocessing.preprocess_categorical_data(self.data, numerical_df)
-            self.normalized_data = final_data
-
+            self.data = final_data
+        
         if method == 'Regressão':
             self.__regression()
         elif method == 'Classificação':
@@ -62,8 +61,10 @@ class AiProcessing:
         """
         st.subheader('Modelos de Regressão Disponíveis:')
         
+        # Determine o DataFrame que está sendo usado
         data_to_use = self.normalized_data if self.normalized_data is not None else self.data
         
+        # Use as colunas do DataFrame apropriado para a seleção da coluna alvo
         self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', data_to_use.columns)
         
         self.ai = st.selectbox('Selecione um modelo de regressão:', 
@@ -79,9 +80,16 @@ class AiProcessing:
         """
         st.subheader('Modelos de Classificação Disponíveis:')
         
+        # Determine o DataFrame que está sendo usado
         data_to_use = self.normalized_data if self.normalized_data is not None else self.data
         
+        # Use as colunas do DataFrame apropriado para a seleção da coluna alvo
         self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', data_to_use.columns)
+        
+        # Verificar se a coluna alvo contém valores contínuos
+        if data_to_use[self.target_column].dtype in ['float64', 'int64']:
+            st.error('A coluna alvo contém valores contínuos. Selecione uma coluna com valores categóricos para a classificação.')
+            return
         
         self.ai = st.selectbox('Selecione um modelo de classificação:', 
                             ('', 'Logistic Regression', 'KNN', 'Random Forest', 'Decision Tree'))
@@ -90,7 +98,6 @@ class AiProcessing:
             model = self.__get_model()
             self.__train_and_evaluate(model, regression=False)
 
-    
     def __get_model(self) -> Union[LinearRegression, SVR, RandomForestRegressor, LogisticRegression, KNeighborsClassifier, RandomForestClassifier, DecisionTreeClassifier]:
         """
         Retorna o modelo de IA baseado na escolha do usuário.
@@ -102,7 +109,7 @@ class AiProcessing:
             'Random Forest': RandomForestRegressor(),
             'Logistic Regression': LogisticRegression(),
             'KNN': KNeighborsClassifier(),
-            'Random Forest': RandomForestClassifier(),
+            'Random Forest Classifier': RandomForestClassifier(),
             'Decision Tree': DecisionTreeClassifier()
         }
         return models[self.ai]
@@ -113,7 +120,6 @@ class AiProcessing:
         :return: Tuple contendo as features (X) e a target (y).
         """
         data_to_use = self.normalized_data if self.normalized_data is not None else self.data
-            
         X: pd.DataFrame = data_to_use.drop(columns=[self.target_column])
         y: pd.Series = data_to_use[self.target_column]
         return X, y
@@ -130,6 +136,7 @@ class AiProcessing:
         model.fit(X_train, y_train)
         predictions: np.ndarray = model.predict(X_test)
         
+        # Exibe métricas de desempenho
         if regression:
             mse: float = mean_squared_error(y_test, predictions)
             st.write(f'MSE: {mse}')
@@ -137,9 +144,8 @@ class AiProcessing:
             accuracy: float = accuracy_score(y_test, predictions)
             st.write(f'Acurácia: {accuracy}')
         
+        # Exibe tabela com y_test e as previsões
         results_df: pd.DataFrame = pd.DataFrame({'Real': y_test, 'Predição': predictions})
-
         results_df.reset_index(drop=True, inplace=True)
-
         st.write('Resultados:')
         st.dataframe(results_df, use_container_width=True)
