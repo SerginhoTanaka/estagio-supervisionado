@@ -2,13 +2,13 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
 import streamlit as st
-from preprocessing import Preprocessing
 
 # Classificação
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
+from preprocessing import Preprocessing
 
 # Regressão
 from sklearn.linear_model import LinearRegression
@@ -34,12 +34,13 @@ class AiProcessing:
         
         if preprocessing_option == 'Sim':
             self.normalized_data = self.__preprocessing()
-        else:
+        elif preprocessing_option == 'Não':
             numerical_df: pd.DataFrame = self.data.select_dtypes(exclude=['object'])
+
             preprocessing = Preprocessing(self.data)
             final_data: pd.DataFrame = preprocessing.preprocess_categorical_data(self.data, numerical_df)
-            self.data = final_data
-        
+            self.normalized_data = final_data
+
         if method == 'Regressão':
             self.__regression()
         elif method == 'Classificação':
@@ -60,26 +61,35 @@ class AiProcessing:
         Método genérico para executar a regressão.
         """
         st.subheader('Modelos de Regressão Disponíveis:')
-        self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', self.data.columns)
+        
+        data_to_use = self.normalized_data if self.normalized_data is not None else self.data
+        
+        self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', data_to_use.columns)
+        
         self.ai = st.selectbox('Selecione um modelo de regressão:', 
-                               ('', 'Linear Regression', 'SVR', 'Random Forest'))
+                            ('', 'Linear Regression', 'SVR', 'Random Forest'))
 
         if self.ai:
             model = self.__get_model()
             self.__train_and_evaluate(model, regression=True)
-    
+
     def __classification(self) -> None:
         """
         Método genérico para executar a classificação.
         """
         st.subheader('Modelos de Classificação Disponíveis:')
-        self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', self.data.columns)
+        
+        data_to_use = self.normalized_data if self.normalized_data is not None else self.data
+        
+        self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', data_to_use.columns)
+        
         self.ai = st.selectbox('Selecione um modelo de classificação:', 
-                               ('', 'Logistic Regression', 'KNN', 'Random Forest', 'Decision Tree'))
+                            ('', 'Logistic Regression', 'KNN', 'Random Forest', 'Decision Tree'))
 
         if self.ai:
             model = self.__get_model()
             self.__train_and_evaluate(model, regression=False)
+
     
     def __get_model(self) -> Union[LinearRegression, SVR, RandomForestRegressor, LogisticRegression, KNeighborsClassifier, RandomForestClassifier, DecisionTreeClassifier]:
         """
@@ -92,7 +102,7 @@ class AiProcessing:
             'Random Forest': RandomForestRegressor(),
             'Logistic Regression': LogisticRegression(),
             'KNN': KNeighborsClassifier(),
-            'Random Forest Classifier': RandomForestClassifier(),
+            'Random Forest': RandomForestClassifier(),
             'Decision Tree': DecisionTreeClassifier()
         }
         return models[self.ai]
@@ -102,7 +112,8 @@ class AiProcessing:
         Método auxiliar para separar as colunas X e y do DataFrame.
         :return: Tuple contendo as features (X) e a target (y).
         """
-        data_to_use: pd.DataFrame = self.normalized_data if self.normalized_data is not None else self.data
+        data_to_use = self.normalized_data if self.normalized_data is not None else self.data
+            
         X: pd.DataFrame = data_to_use.drop(columns=[self.target_column])
         y: pd.Series = data_to_use[self.target_column]
         return X, y
@@ -119,7 +130,6 @@ class AiProcessing:
         model.fit(X_train, y_train)
         predictions: np.ndarray = model.predict(X_test)
         
-        # Exibe métricas de desempenho
         if regression:
             mse: float = mean_squared_error(y_test, predictions)
             st.write(f'MSE: {mse}')
@@ -127,10 +137,8 @@ class AiProcessing:
             accuracy: float = accuracy_score(y_test, predictions)
             st.write(f'Acurácia: {accuracy}')
         
-        # Exibe tabela com y_test e as previsões
         results_df: pd.DataFrame = pd.DataFrame({'Real': y_test, 'Predição': predictions})
 
-        # Redefinindo o índice para removê-lo
         results_df.reset_index(drop=True, inplace=True)
 
         st.write('Resultados:')
