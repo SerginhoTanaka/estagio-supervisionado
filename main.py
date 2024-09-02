@@ -38,23 +38,32 @@ class Dashboard:
             "Upload de arquivo": self.__upload_file,
             "Mesclar Planilhas": self.__merge_spreadsheets
         }
-        options[selected_option]()
+        
+        # Executa a opção selecionada
+        result = options[selected_option]()
+        
+        # Processamento adicional para a opção "Processamento com IA"
+        if selected_option == "Processamento com IA":
+            processed_data, method = result
+            if method == 'Regressão':
+                self.aiprocessing.regression()
+            elif method == 'Classificação':
+                self.aiprocessing.classification()
 
     def __process_with_ai(self):
         """
         Get the data for AI processing.
         """
-        processed_data, method  = self.aiprocessing.run()
-        if 'processed_data' not in st.session_state or st.session_state['processed_data'] is None:
-            st.session_state['processed_data'] = processed_data
-        elif not st.session_state['processed_data'].equals(processed_data):
-            st.session_state['processed_data'] = processed_data
-        
-        
-        if method == 'Regressão':
-            self.aiprocessing.regression()
-        elif method == 'Classificação':
-            self.aiprocessing.classification()    
+        if 'processed_data' in st.session_state and st.session_state['processed_data'] is not None:
+            return st.session_state['processed_data'], st.session_state.get('method', None)
+
+        processed_data, method = self.aiprocessing.run()
+
+        st.session_state['processed_data'] = processed_data
+        st.session_state['method'] = method
+
+        return processed_data, method
+
     def __upload_file(self) -> None:
         """
         Upload a file.
