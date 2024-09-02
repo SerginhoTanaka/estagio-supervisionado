@@ -11,12 +11,14 @@ class Dashboard:
 
     def __init__(self) -> None:
         self.data: pd.DataFrame = st.session_state.get('data', pd.DataFrame())
+        self.processed_data: pd.DataFrame = st.session_state.get('processed_data', None)
+
         from preprocessing import Preprocessing 
         self.preprocessor: Preprocessing = Preprocessing(self.data)
         from description import Description 
         self.description: Description = Description(self.data)
         from aiprocessing import AiProcessing 
-        self.aiprocessing: AiProcessing = AiProcessing(self.data)
+        self.aiprocessing: AiProcessing = AiProcessing(self.data,self.processed_data)
 
     def run(self) -> None:
         """
@@ -31,13 +33,28 @@ class Dashboard:
             "Pré-processamento": self.preprocessor.run,
             "Análise sem pré-processamento": self.__generate_graph,
             "Descrição": lambda: st.write('Em desenvolvimento...'),
-            "Processamento com IA": self.aiprocessing.run,
+            "Processamento com IA": self.__process_with_ai,
             "Chat": lambda: st.write('Em desenvolvimento...'),
             "Upload de arquivo": self.__upload_file,
             "Mesclar Planilhas": self.__merge_spreadsheets
         }
         options[selected_option]()
 
+    def __process_with_ai(self):
+        """
+        Get the data for AI processing.
+        """
+        processed_data, method  = self.aiprocessing.run()
+        if 'processed_data' not in st.session_state or st.session_state['processed_data'] is None:
+            st.session_state['processed_data'] = processed_data
+        elif not st.session_state['processed_data'].equals(processed_data):
+            st.session_state['processed_data'] = processed_data
+        
+        
+        if method == 'Regressão':
+            self.aiprocessing.regression()
+        elif method == 'Classificação':
+            self.aiprocessing.classification()    
     def __upload_file(self) -> None:
         """
         Upload a file.
