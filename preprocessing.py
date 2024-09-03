@@ -126,10 +126,8 @@ class Preprocessing:
 
             st.write(encoded_data)
 
-            # Concatenar dados numéricos e categóricos
             final_df = pd.concat([numerical_df, encoded_data], axis=1)
         else:
-            st.write("Não há colunas categóricas para pré-processar.")
             final_df = numerical_df
 
         return final_df

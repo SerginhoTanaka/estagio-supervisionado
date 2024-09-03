@@ -32,7 +32,7 @@ class Dashboard:
         options: dict[str, callable] = {
             "Pré-processamento": self.preprocessor.run,
             "Análise sem pré-processamento": self.__generate_graph,
-            "Descrição": lambda: st.write('Em desenvolvimento...'),
+            "Descrição":self.description.run,
             "Processamento com IA": self.__process_with_ai,
             "Chat": lambda: st.write('Em desenvolvimento...'),
             "Upload de arquivo": self.__upload_file,
