@@ -25,7 +25,7 @@ class AiProcessing:
         self.normalized_data: Optional[pd.DataFrame] = processed_data
         self.target_column: Optional[str] = None
 
-    def run(self) -> Tuple[pd.DataFrame, str]:
+    def run(self) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
         """
         Método principal para executar o fluxo de pré-processamento e seleção do modelo de IA.
         """
@@ -42,12 +42,14 @@ class AiProcessing:
                     preprocessing = Preprocessing(self.data)
                     final_data: pd.DataFrame = preprocessing.preprocess_categorical_data(self.data, numerical_df)
                     self.data = final_data
+                    return final_data, method
+            return None, None
 
         except Exception as e:
             st.error(f"Ocorreu um erro durante a execução: {e}")
+            return None, None
 
-
-    def __preprocessing(self) -> pd.DataFrame:
+    def __preprocessing(self) -> Optional[pd.DataFrame]:
         """
         Método para executar o pré-processamento dos dados.
         :return: DataFrame com os dados pré-processados.
@@ -60,6 +62,7 @@ class AiProcessing:
             return processed_data
         except Exception as e:
             st.error(f"Erro no pré-processamento: {e}")
+            return None
 
     def regression(self) -> None:
         """
