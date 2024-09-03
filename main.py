@@ -39,10 +39,8 @@ class Dashboard:
             "Mesclar Planilhas": self.__merge_spreadsheets
         }
         
-        # Executa a opção selecionada
         result = options[selected_option]()
         
-        # Processamento adicional para a opção "Processamento com IA"
         if selected_option == "Processamento com IA":
             processed_data, method = result
             if method == 'Regressão':
