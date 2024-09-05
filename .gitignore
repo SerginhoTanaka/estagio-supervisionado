@@ -86,7 +86,7 @@ venv
 # Nuxt.js build / generate output
 .nuxt
 dist
-
+actions.db
 # Gatsby s
 .cache/
 # Comment in the public line in if your project uses Gatsby and *not* Next.js

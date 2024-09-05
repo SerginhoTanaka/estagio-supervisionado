@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from preprocessing import Preprocessing
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models import DBPrimaryActions, DBAiActions  # Importar as classes do banco de dados
 
 # Classificação
 from sklearn.linear_model import LogisticRegression
@@ -17,6 +20,11 @@ from sklearn.ensemble import RandomForestRegressor
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, accuracy_score
+
+# Configuração básica do SQLAlchemy
+engine = create_engine('sqlite:///actions.db')
+Session = sessionmaker(bind=engine)
+session = Session()
 
 class AiProcessing:
     def __init__(self, data: pd.DataFrame, processed_data) -> None:
@@ -139,7 +147,7 @@ class AiProcessing:
         """
         Método para treinar e avaliar o modelo selecionado.
         :param model: Instância do modelo de IA selecionado.
-        :param regression: Booleano indicando se o modelo é de regressão (True) ou classificação (False).
+        :param is_regression: Booleano indicando se o modelo é de regressão (True) ou classificação (False).
         """
         try:
             X, y = self.__split_data()
@@ -151,14 +159,50 @@ class AiProcessing:
             if is_regression:
                 mse: float = mean_squared_error(y_test, predictions)
                 st.write(f'MSE: {mse}')
+                metrics = {'mse': mse}
             else:
                 accuracy: float = accuracy_score(y_test, predictions)
                 st.write(f'Acurácia: {accuracy}')
+                metrics = {'accuracy': accuracy}
 
+            # Adicionar resultados e predições aos dados das métricas
+            metrics['real_values'] = y_test.tolist()
+            metrics['predictions'] = predictions.tolist()
+
+            # Exibir os resultados
             results_df: pd.DataFrame = pd.DataFrame({'Real': y_test, 'Predição': predictions})
             results_df.reset_index(drop=True, inplace=True)
-
             st.write('Resultados:')
             st.dataframe(results_df, use_container_width=True)
+            
+            if st.button('Salvar Dados'):
+                self.__save_metrics_to_db(metrics)
+
         except Exception as e:
             st.error(f"Erro durante o treinamento e avaliação: {e}")
+    def __save_metrics_to_db(self, metrics: dict) -> None:
+        """
+        Salva as métricas no banco de dados.
+        :param metrics: Dicionário contendo as métricas do modelo.
+        """
+        try:
+            print(metrics)
+            primary_action = session.query(DBPrimaryActions).order_by(DBPrimaryActions.id.desc()).first()
+
+            if primary_action:
+                ai_action = DBAiActions(
+                    paradigm='Regression' if 'mse' in metrics else 'Classification',
+                    model=self.ai,
+                    target_column=self.target_column,
+                    metrics=metrics,
+                    primary_action_id=primary_action.id
+                )
+                session.add(ai_action)
+                session.commit()
+                st.write("Métricas salvas com sucesso!")
+            else:
+                st.error("Nenhuma ação primária encontrada para associar.")
+        except Exception as e:
+            st.error(f"Erro ao salvar métricas no banco de dados: {e}")
+
+

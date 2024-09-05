@@ -3,7 +3,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import List, Optional
-
+from models import DBPrimaryActions
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from report import ReportsDashboard
+engine = create_engine('sqlite:///actions.db')
+Session = sessionmaker(bind=engine)
+session = Session()
 class Dashboard:
     """
     A class for data preprocessing and visualization.
@@ -12,6 +18,7 @@ class Dashboard:
     def __init__(self) -> None:
         self.data: pd.DataFrame = st.session_state.get('data', pd.DataFrame())
         self.processed_data: pd.DataFrame = st.session_state.get('processed_data', None)
+        self.dataset_name: str = st.session_state.get('dataset_name', 'Desconhecido')
 
         from preprocessing import Preprocessing 
         self.preprocessor: Preprocessing = Preprocessing(self.data)
@@ -19,7 +26,8 @@ class Dashboard:
         self.description: Description = Description(self.data)
         from aiprocessing import AiProcessing 
         self.aiprocessing: AiProcessing = AiProcessing(self.data,self.processed_data)
-
+        if 'action_saved' not in st.session_state:
+            st.session_state['action_saved'] = False
     def run(self) -> None:
         """
         Run the dashboard.
@@ -27,7 +35,7 @@ class Dashboard:
         st.sidebar.title("CooperGest")
         selected_option: str = st.sidebar.radio(
             "Selecione uma opção",
-            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Chat", "Upload de arquivo", "Mesclar Planilhas"]
+            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Chat", "Upload de arquivo", "Mesclar Planilhas", "Relatórios"]
         )
         options: dict[str, callable] = {
             "Pré-processamento": self.preprocessor.run,
@@ -36,11 +44,19 @@ class Dashboard:
             "Processamento com IA": self.__process_with_ai,
             "Chat": lambda: st.write('Em desenvolvimento...'),
             "Upload de arquivo": self.__upload_file,
-            "Mesclar Planilhas": self.__merge_spreadsheets
+            "Mesclar Planilhas": self.__merge_spreadsheets,
+            "Relatórios": ReportsDashboard().run
+            
         }
         
         result = options[selected_option]()
-        
+        last_option = st.session_state.get('last_option', None)
+        if selected_option != last_option:
+            if selected_option in ["Pré-processamento", "Processamento com IA"]:
+                is_ai = (selected_option == "Processamento com IA")
+                self.__save_primary_action(selected_option, is_ai)
+            st.session_state['last_option'] = selected_option
+            
         if selected_option == "Processamento com IA":
             processed_data, method = result
             if method == 'Regressão':
@@ -48,6 +64,25 @@ class Dashboard:
             elif method == 'Classificação':
                 self.aiprocessing.classification()
 
+    def __save_primary_action(self, action_name: str, is_ai: bool) -> None:
+        """
+        Save the primary action to the database.
+        """
+        try:
+            dataset_name = st.session_state['dataset_name']
+
+            new_action = DBPrimaryActions(
+                action_name=action_name,
+                dataset_name=dataset_name,
+                is_ai=is_ai
+            )
+            session.add(new_action)
+            session.commit()
+            session.close()
+            st.write(f"Ação '{action_name}' salva com sucesso!")
+        except Exception as e:
+            print(f"Erro ao salvar a ação: {e}")
+        
     def __process_with_ai(self):
         """
         Get the data for AI processing.
@@ -71,11 +106,11 @@ class Dashboard:
             try:
                 self.data = pd.read_csv(file)
                 st.session_state.data = self.data  
+                st.session_state['dataset_name'] = file.name  
                 st.write("Arquivo CSV carregado com sucesso!")
                 st.write(self.data.head())
             except Exception as e:
                 st.error(f"Erro ao carregar o arquivo: {e}")
-
     @staticmethod
     @st.cache_data
     def convert_df(_df: pd.DataFrame) -> bytes:
