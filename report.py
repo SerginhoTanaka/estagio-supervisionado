@@ -4,7 +4,7 @@ from sqlalchemy import create_engine,func
 from models import DBAiActions, DBPrimaryActions 
 import pandas as pd
 from typing import List, Tuple, Optional, Dict, Any
-
+from main import Dashboard
 engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -76,10 +76,10 @@ class ReportsDashboard:
                         'Paradigma': action.paradigm,
                         'Modelo': action.model,
                         'Coluna Alvo': action.target_column,
-                        'MSE': action.metrics['mse'] if action.metrics else None,
+                        'MSE': action.metrics['mse'] if 'mse' in action.metrics else '',
+                        'Accuracy': action.metrics['accuracy'] if 'accuracy' in action.metrics else '',
                     } for action in ai_actions]
-                    
-                    # Separar previsões e valores reais
+
                     metrics = [
                         {
                             'Predictions': action.metrics['predictions'] if action.metrics and 'predictions' in action.metrics else None,
@@ -96,6 +96,8 @@ class ReportsDashboard:
                     
                     st.subheader('Métricas')
                     st.dataframe(df_metrics)
+                    Dashboard().download_spreadsheet(df_ai, 'ai_actions.xlsx')
+                        
                 else:
                     st.write("Nenhuma ação de IA encontrada para o dataset selecionado.")
         else:

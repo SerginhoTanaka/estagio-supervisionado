@@ -21,7 +21,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, accuracy_score
 
-# Configuração básica do SQLAlchemy
 engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
 session = Session()
