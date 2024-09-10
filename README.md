@@ -54,7 +54,7 @@ erDiagram
         int primary_action_id FK
     }
 
-    DBPrimaryActions ||--o{ DBAiActions : "1:N"
+    TBPrimaryActions ||--o{ TBAiActions : "1:N"
 
 
 ```
