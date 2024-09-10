@@ -10,7 +10,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 # Definição das tabelas
-class DBPrimaryActions(Base):
+class TBPrimaryActions(Base):
     __tablename__ = 'db_primary_actions'
     id = Column(Integer, primary_key=True, autoincrement=True)
     action_name = Column(String, nullable=False)  # Nome da ação principal
@@ -19,7 +19,7 @@ class DBPrimaryActions(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)  # Momento da ação
     ai_actions = relationship("DBAiActions", back_populates="primary_action", cascade="all, delete-orphan")  # Relação 1:N com AiActions
 
-class DBAiActions(Base):
+class TBAiActions(Base):
     __tablename__ = 'db_ai_actions'
     id = Column(Integer, primary_key=True, autoincrement=True)
     paradigm = Column(String, nullable=False)  # Pode ser 'Classification' ou 'Regression'
