@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import List, Optional
-from models import DBPrimaryActions
+from models import TBPrimaryActions
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from report import ReportsDashboard
@@ -71,7 +71,7 @@ class Dashboard:
         try:
             dataset_name = st.session_state['dataset_name']
 
-            new_action = DBPrimaryActions(
+            new_action = TBPrimaryActions(
                 action_name=action_name,
                 dataset_name=dataset_name,
                 is_ai=is_ai

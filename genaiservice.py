@@ -4,36 +4,35 @@
 # from langchain_openai import OpenAIEmbeddings
 # from langchain_text_splitters import CharacterTextSplitter
 
-# # Defina o caminho do índice
-# index_path = "faiss_index"
+# class GenAIService:
+#     def __init__(self):
+#         self.index_path = "faiss_index"
+#         self.embeddings = OpenAIEmbeddings()
+#         self.index = None
 
-# # Carregar embeddings
-# embeddings = OpenAIEmbeddings()
+#     def load_index(self):
+#         if os.path.exists(self.index_path):
+#             self.index = FAISS.load_local(self.index_path, self.embeddings)
+#         else:
+#             self.index = FAISS(embedding_function=self.embeddings)
 
-# # Verifique se o índice já existe
-# if os.path.exists(index_path):
-#     # Carregar índice existente
-#     index = FAISS.load_local(index_path, embeddings)
-# else:
-#     index = FAISS(embedding_function=embeddings)  # Crie um novo índice se não existir
+#     def process_data(self, data):\
+#         loader = CSVLoader()
+#         data = loader.load(data)
 
-# # Carregar CSV
-# loader = CSVLoader('caminho/para/seu/arquivo.csv')
-# data = loader.load()
+#         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+#         chunks = text_splitter.split_documents(data)
 
-# # Dividir texto
-# text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-# chunks = text_splitter.split_documents(data)
+#         for chunk in chunks:
+#             query = chunk.page_content
+#             results = self.index.similarity_search(query)
 
-# # Adicionar chunks ao índice se não existirem
-# for chunk in chunks:
-#     query = chunk.page_content  # ou outra representação do chunk
-#     results = index.similarity_search(query)
-    
-#     if not results:
-#         # Se não houver resultados, o chunk não está no índice
-#         index.add_texts([chunk])  # Adiciona o chunk ao índice
-#         print(f"Chunk adicionado ao índice: {chunk.page_content}")
+#             if not results:
+#                 self.index.add_texts([chunk])
+#                 print(f"Chunk added to index: {chunk.page_content}")
 
-# # Salvar o índice atualizado
-# index.save_local(index_path)
+#         self.index.save_local(self.index_path)
+
+#     def run(self, data):
+#         self.load_index()
+#         self.process_data(data)

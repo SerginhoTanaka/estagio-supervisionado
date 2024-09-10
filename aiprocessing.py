@@ -5,7 +5,7 @@ import streamlit as st
 from preprocessing import Preprocessing
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import DBPrimaryActions, DBAiActions  # Importar as classes do banco de dados
+from models import TBPrimaryActions, TBAiActions  # Importar as classes do banco de dados
 
 # Classificação
 from sklearn.linear_model import LogisticRegression
@@ -186,10 +186,10 @@ class AiProcessing:
         """
         try:
             print(metrics)
-            primary_action = session.query(DBPrimaryActions).order_by(DBPrimaryActions.id.desc()).first()
+            primary_action = session.query(TBPrimaryActions).order_by(TBPrimaryActions.id.desc()).first()
 
             if primary_action:
-                ai_action = DBAiActions(
+                ai_action = TBAiActions(
                     paradigm='Regression' if 'mse' in metrics else 'Classification',
                     model=self.ai,
                     target_column=self.target_column,

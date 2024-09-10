@@ -23,7 +23,8 @@ class Description:
             # Exibe o tipo de dado de cada coluna
             st.write("### Tipos de Dados")
             st.write(self.data.dtypes)
-
+            st.write("### Estatísticas Descritivas")
+            st.write(self.data.describe())
             # Calcula e mostra a importância das features
             feature_importance = self.calculate_feature_importance()
             if feature_importance is not None:

@@ -1,10 +1,9 @@
 import streamlit as st
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine,func
-from models import DBAiActions, DBPrimaryActions 
+from models import TBAiActions, TBPrimaryActions 
 import pandas as pd
 from typing import List, Tuple, Optional, Dict, Any
-from main import Dashboard
 engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -24,16 +23,16 @@ class ReportsDashboard:
             preprocessing_details (List[Tuple[str, int]]): Detalhes dos pré-processamentos.
         """
         
-        total_preprocessing = session.query(func.count(DBPrimaryActions.id)).filter(DBPrimaryActions.is_ai == False).scalar()
-        total_ai_processing = session.query(func.count(DBPrimaryActions.id)).filter(DBPrimaryActions.is_ai == True).scalar()
+        total_preprocessing = session.query(func.count(TBPrimaryActions.id)).filter(TBPrimaryActions.is_ai == False).scalar()
+        total_ai_processing = session.query(func.count(TBPrimaryActions.id)).filter(TBPrimaryActions.is_ai == True).scalar()
         
-        preprocessing_details = session.query(DBPrimaryActions.dataset_name, func.count(DBPrimaryActions.id)).filter(DBPrimaryActions.is_ai == False).group_by(DBPrimaryActions.dataset_name).all()
+        preprocessing_details = session.query(TBPrimaryActions.dataset_name, func.count(TBPrimaryActions.id)).filter(TBPrimaryActions.is_ai == False).group_by(TBPrimaryActions.dataset_name).all()
         
         
         return total_preprocessing, total_ai_processing, preprocessing_details
     
     @staticmethod
-    def __get_ai_actions_by_dataset(dataset_name: str) -> List[DBAiActions]:
+    def __get_ai_actions_by_dataset(dataset_name: str) -> List[TBAiActions]:
         """
         Obtém as ações de IA para um dataset específico.
         
@@ -41,10 +40,10 @@ class ReportsDashboard:
             dataset_name (str): Nome do dataset.
         
         Returns:
-            List[DBAiActions]: Lista de ações de IA para o dataset selecionado.
+            List[TBAiActions]: Lista de ações de IA para o dataset selecionado.
         """
         
-        ai_actions = session.query(DBAiActions).join(DBPrimaryActions).filter(DBPrimaryActions.dataset_name == dataset_name).all()
+        ai_actions = session.query(TBAiActions).join(TBPrimaryActions).filter(TBPrimaryActions.dataset_name == dataset_name).all()
         
         
         return ai_actions
@@ -96,6 +95,8 @@ class ReportsDashboard:
                     
                     st.subheader('Métricas')
                     st.dataframe(df_metrics)
+                    from main import Dashboard
+
                     Dashboard().download_spreadsheet(df_ai, 'ai_actions.xlsx')
                         
                 else:

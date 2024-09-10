@@ -6,7 +6,6 @@ from sklearn.preprocessing import (
     MinMaxScaler, StandardScaler, RobustScaler, Normalizer, MaxAbsScaler, OneHotEncoder
 )
 from scipy import stats
-from scipy.signal import savgol_filter
 from main import Dashboard
 
 
