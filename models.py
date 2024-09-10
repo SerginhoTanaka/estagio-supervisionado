@@ -11,7 +11,7 @@ session = Session()
 
 # Definição das tabelas
 class TBPrimaryActions(Base):
-    __tablename__ = 'db_primary_actions'
+    __tablename__ = 'tb_primary_actions'
     id = Column(Integer, primary_key=True, autoincrement=True)
     action_name = Column(String, nullable=False)  # Nome da ação principal
     dataset_name = Column(String, nullable=True)  # Nome do dataset utilizado
@@ -20,7 +20,7 @@ class TBPrimaryActions(Base):
     ai_actions = relationship("DBAiActions", back_populates="primary_action", cascade="all, delete-orphan")  # Relação 1:N com AiActions
 
 class TBAiActions(Base):
-    __tablename__ = 'db_ai_actions'
+    __tablename__ = 'tb_ai_actions'
     id = Column(Integer, primary_key=True, autoincrement=True)
     paradigm = Column(String, nullable=False)  # Pode ser 'Classification' ou 'Regression'
     model = Column(String, nullable=False)  # Nome do modelo utilizado (e.g., 'Random Forest')
