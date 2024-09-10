@@ -33,7 +33,7 @@ streamlit run main.py
 
 ## Diagram
 
-### Claas Diagram
+### DER Diagram
 
 ```mermaid
 erDiagram
