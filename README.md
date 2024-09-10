@@ -36,32 +36,26 @@ streamlit run main.py
 ### Claas Diagram
 
 ```mermaid
-classDiagram
-    class Preprocessing {
-        - data: pd.DataFrame
-        - scaler: str
-        #clean_data(data_to_clean: pd.DataFrame, columns: List[str]): pd.DataFrame
-        #select_columns(): List[str]
-        # select_preprocessing_method(): void
-        - apply_preprocessing(preprocessing_method: str): void
+erDiagram
+    DBPrimaryActions {
+        int id PK
+        string action_name
+        string dataset_name
+        boolean is_ai
+        datetime timestamp
     }
-    class Dashboard {
-        - data: pd.DataFrame
-        - preprocessor: Preprocessing
-        - description: Description
-        + run(): void
-        - generate_graph(): void
-        - plot_graph(cleaned_data: pd.DataFrame, columns: Optional[List[str]]): void
+
+    DBAiActions {
+        int id PK
+        string paradigm
+        string model
+        string target_column
+        json metrics
+        int primary_action_id FK
     }
-    
-    class Description {
-        - data: pd.DataFrame
-        + run(): void
-        - generate_correlation(): pd.DataFrame
-    }
-    
-Dashboard "1" -- "1" Preprocessing: Selects
-Dashboard "1" -- "1" Description: Chooses
+
+    DBPrimaryActions ||--o{ DBAiActions : "1:N"
+
 
 ```
 ### Sequence Diagram
