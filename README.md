@@ -37,7 +37,7 @@ streamlit run main.py
 
 ```mermaid
 erDiagram
-    DBPrimaryActions {
+    TBPrimaryActions {
         int id PK
         string action_name
         string dataset_name
@@ -45,7 +45,7 @@ erDiagram
         datetime timestamp
     }
 
-    DBAiActions {
+    TBAiActions {
         int id PK
         string paradigm
         string model
