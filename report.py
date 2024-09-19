@@ -104,6 +104,6 @@ class ReportsDashboard:
                         st.dataframe(df_metrics)
 
                         from main import Dashboard  
-                        Dashboard().download_spreadsheet(df_ai, 'ai_actions')
+                        Dashboard().download_spreadsheet(df_metrics, 'ai_actions')
         except Exception as e:
             st.error(f"Ocorreu um erro ao carregar o dashboard: {e}")

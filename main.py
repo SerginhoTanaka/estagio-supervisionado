@@ -35,7 +35,7 @@ class Dashboard:
         st.sidebar.title("CooperGest")
         selected_option: str = st.sidebar.radio(
             "Selecione uma opção",
-            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Chat", "Upload de arquivo", "Mesclar Planilhas", "Relatórios"]
+            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Chat", "Upload de arquivo", "Mesclar Bases", "Relatórios"]
         )
         options: dict[str, callable] = {
             "Pré-processamento": self.preprocessor.run,
@@ -44,7 +44,7 @@ class Dashboard:
             "Processamento com IA": self.__process_with_ai,
             "Chat": lambda: st.write('Em desenvolvimento...'),
             "Upload de arquivo": self.__upload_file,
-            "Mesclar Planilhas": self.__merge_spreadsheets,
+            "Mesclar Bases": self.__merge_spreadsheets,
             "Relatórios": ReportsDashboard().run
             
         }
@@ -150,9 +150,9 @@ class Dashboard:
                 key_column1: str = st.selectbox("Selecionar chave de junção para Planilha 1", data1.columns)
                 key_column2: str = st.selectbox("Selecionar chave de junção para Planilha 2", data2.columns)
 
-                if st.button("Mesclar Planilhas"):
+                if st.button("Mesclar Bases"):
                     merged_data: pd.DataFrame = pd.merge(data1, data2, how='inner', left_on=key_column1, right_on=key_column2)
-                    st.write("Planilhas mescladas com sucesso!")
+                    st.write("Bases mescladas com sucesso!")
                     st.write(merged_data.head())
                     st.write(f"len(merged_data): {len(merged_data)}")
                     
