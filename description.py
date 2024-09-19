@@ -27,7 +27,7 @@ class Description:
                 st.write(self.data.describe())
 
                 # Calcula e mostra a importância das features
-                feature_importance = self.calculate_feature_importance()
+                feature_importance = self.__calculate_feature_importance()
                 if feature_importance is not None:
                     st.write("### Importância das Features")
                     st.write(feature_importance)
@@ -45,7 +45,7 @@ class Description:
             st.error(f"Erro ao selecionar colunas: {e}")
             return []
 
-    def calculate_feature_importance(self):
+    def __calculate_feature_importance(self):
         try:
             if self.target_column is None:
                 st.error("Coluna alvo não foi selecionada!")
