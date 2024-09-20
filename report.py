@@ -96,14 +96,13 @@ class ReportsDashboard:
 
                         df_ai = pd.DataFrame(ai_actions_data)
                         df_metrics = pd.DataFrame(metrics)
-
                         st.subheader('Detalhes das Ações de IA')
                         st.dataframe(df_ai)
 
                         st.subheader('Métricas')
                         st.dataframe(df_metrics)
 
-                        from main import Dashboard  
-                        Dashboard().download_spreadsheet(df_metrics, 'ai_actions')
+                        from main import Dashboard
+                        Dashboard().download_spreadsheet(df_metrics, 'ai_actions.csv')
         except Exception as e:
             st.error(f"Ocorreu um erro ao carregar o dashboard: {e}")

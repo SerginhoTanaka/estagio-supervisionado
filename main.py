@@ -121,6 +121,7 @@ class Dashboard:
         Download a spreadsheet.
         """
         try:
+            
             csv: bytes = self.convert_df(df)
             st.download_button(
                 label="Baixar Planilha",
