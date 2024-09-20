@@ -27,7 +27,12 @@ class ReportsDashboard:
         """
         try:
             total_preprocessing = session.query(func.count(TBPrimaryActions.id)).filter(TBPrimaryActions.is_ai == False).scalar()
-            total_ai_processing = session.query(func.count(TBPrimaryActions.id)).filter(TBPrimaryActions.is_ai == True).scalar()
+            total_ai_processing = (
+                session.query(func.count(TBPrimaryActions.id))
+                .join(TBAiActions, TBPrimaryActions.id == TBAiActions.primary_action_id)  # Realizando o join com TBAiActions
+                .filter(TBPrimaryActions.is_ai == True)  # Filtrando apenas ações que são AI
+                .scalar()
+            )
 
             preprocessing_details = session.query(TBPrimaryActions.dataset_name, func.count(TBPrimaryActions.id))\
                                            .filter(TBPrimaryActions.is_ai == False)\
