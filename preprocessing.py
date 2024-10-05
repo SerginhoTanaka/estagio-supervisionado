@@ -2,6 +2,7 @@ from typing import List, Optional
 
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 import streamlit as st
 from sklearn.preprocessing import (
     MinMaxScaler, StandardScaler, RobustScaler, Normalizer, MaxAbsScaler, OneHotEncoder
@@ -39,7 +40,7 @@ class Preprocessing:
         """
         cleaning_method = st.sidebar.multiselect(
             'Selecione um método de limpeza:',
-            ('nenhum', 'Imputar medias em linhas com valores nulos', 'Remover linhas duplicadas', 'Remover ruídos'),
+            ('nenhum','Remover valores nulos', 'Imputar valores médios', 'Remover linhas duplicadas', 'Remover ruídos'),
             default='nenhum'
         )
         self.cleaning_methods = cleaning_method
@@ -50,7 +51,7 @@ class Preprocessing:
         """
         preprocessing_method = st.sidebar.selectbox(
             'Selecione um método de normalização:',
-            ('nenhum', 'MinMaxScaler', 'StandardScaler', 'RobustScaler', 'Normalizer', 'MaxAbsScaler'),
+            ('nenhum', 'MinMaxScaler', 'StandardScaler', 'RobustScaler', 'MaxAbsScaler'),
             index=0
         )
         if preprocessing_method == 'MinMaxScaler':
@@ -62,9 +63,6 @@ class Preprocessing:
         elif preprocessing_method == 'RobustScaler':
             st.sidebar.write("Você selecionou RobustScaler. Este método escala os dados usando estatísticas robustas para lidar com outliers.")
             st.sidebar.write("Dica: O RobustScaler é útil quando seus dados contêm outliers e você deseja escalá-los usando estatísticas resistentes a outliers.")
-        elif preprocessing_method == 'Normalizer':
-            st.sidebar.write("Você selecionou Normalizer. Este método normaliza os dados para que cada amostra tenha norma unitária.")
-            st.sidebar.write("Dica: O Normalizer é útil quando você deseja normalizar cada amostra individualmente, independentemente das outras amostras.")
         elif preprocessing_method == 'MaxAbsScaler':
             st.sidebar.write("Você selecionou MaxAbsScaler. Este método escala os dados para o intervalo [-1, 1] dividindo pelo valor máximo absoluto.")
             st.sidebar.write("Dica: O MaxAbsScaler é útil quando você deseja preservar a relação de ordem dos seus dados, mas normalizá-los para o intervalo [-1, 1].")
@@ -73,12 +71,7 @@ class Preprocessing:
         self.scaler = preprocessing_method
 
     def __apply_preprocessing(self) -> pd.DataFrame:
-        """
-        Aplica os métodos de limpeza, normalização e pré-processamento aos dados.
-
-        Returns:
-            pd.DataFrame: DataFrame após aplicação dos métodos.
-        """
+        # Dicionário de scalers
         scaler_map = {
             'MinMaxScaler': MinMaxScaler(),
             'StandardScaler': StandardScaler(),
@@ -99,12 +92,14 @@ class Preprocessing:
         # Aplicar limpeza
         if 'nenhum' not in self.cleaning_methods:
             for method in self.cleaning_methods:
-                if method == 'Remover linhas com valores nulos':
+                if method ==   'Remover valores nulos':
                     df = self.__clean_null(df)
                 elif method == 'Remover linhas duplicadas':
                     df = self.__clean_duplicates(df)
                 elif method == 'Remover ruídos':
                     df = self.__clean_noise(df)
+                elif method == 'Imputar valores médios':
+                    df = self.__impute_mean(df)  # Chama a função de imputação de médias
 
         # Separar as colunas numéricas
         numerical_df = df.select_dtypes(exclude=['object'])
@@ -142,16 +137,19 @@ class Preprocessing:
             pd.DataFrame: DataFrame após pré-processamento e concatenação.
         """
         categorical_df = df.select_dtypes(include=['object'])
-
-        # Se não houver colunas categóricas, não precisamos de OneHotEncoding
+        
+        # Se houver colunas categóricas, aplicamos Label Encoding
         if not categorical_df.empty:
-            # Aqui removemos o OneHotEncoder e não aplicamos nada sobre as colunas categóricas
-            st.write("Não há encoding necessário para colunas categóricas")
+            le = LabelEncoder()
+            for col in categorical_df.columns:
+                df[col] = le.fit_transform(df[col])
 
-            final_df = pd.concat([numerical_df, categorical_df], axis=1)
+            # Concatenar os dados numéricos e categóricos
+            final_df = pd.concat([numerical_df.reset_index(drop=True), df[categorical_df.columns]], axis=1)
         else:
             final_df = numerical_df
-        st.write(final_df)
+
+        st.write(final_df.head(3))  # Mostrar os primeiros 3 registros para visualização
         return final_df
 
    
@@ -215,3 +213,23 @@ class Preprocessing:
 
         cleaned_df = pd.concat([cleaned_df, categorical_values], axis=1)
         return cleaned_df
+    def __impute_mean(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Substitui valores NaN pela média das colunas numéricas.
+
+        Args:
+            df (pd.DataFrame): DataFrame a ser imputado.
+
+        Returns:
+            pd.DataFrame: DataFrame com valores NaN substituídos pelas médias.
+        """
+        st.write('Valores nulos antes da imputação de média:', df.isnull().sum())
+        
+        # Substitui valores NaN pela média nas colunas numéricas
+        numerical_columns = df.select_dtypes(include=[np.number]).columns
+        for col in numerical_columns:
+            mean_value = df[col].mean()
+            df[col].fillna(mean_value, inplace=True)  # Substitui NaN pela média da coluna
+        
+        st.write('Valores nulos após a imputação de média:', df.isnull().sum())
+        return df

@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from report import ReportsDashboard
 from file_viewer import FileViewer
-from drive_upload import GoogleDriveUploader
+# from drive_upload import GoogleDriveUploader
 engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -47,7 +47,7 @@ class Dashboard:
             "Mesclar Bases": self.__merge_spreadsheets,
             "Relatórios": ReportsDashboard().run,
             "Visualizar Arquivos": FileViewer().visualizar_arquivos,
-            "Updolad do Drive": GoogleDriveUploader(self).display
+            #"Updolad do Drive": GoogleDriveUploader(self).display
             
         }
         
@@ -144,7 +144,8 @@ class Dashboard:
 
     def __merge_spreadsheets(self) -> None:
         """
-        Merge two spreadsheets based on user-selected keys.
+        Merge two spreadsheets based on user-selected keys, remove values above 50000
+        from selected columns, and remove duplicated columns.
         """
         st.subheader("Carregar Planilha 1:")
         file1: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload planilha 1", type="csv", key="file1")
@@ -157,22 +158,53 @@ class Dashboard:
                 data1: pd.DataFrame = pd.read_csv(file1)
                 data2: pd.DataFrame = pd.read_csv(file2)
 
+                # Selecionar as chaves de junção para cada base
                 st.subheader("Selecionar chave de junção para cada planilha:")
                 key_column1: str = st.selectbox("Selecionar chave de junção para Planilha 1", data1.columns)
                 key_column2: str = st.selectbox("Selecionar chave de junção para Planilha 2", data2.columns)
 
                 if st.button("Mesclar Bases"):
-                    merged_data: pd.DataFrame = pd.merge(data1, data2, how='inner', left_on=key_column1, right_on=key_column2)
-                    st.write("Bases mescladas com sucesso!")
+                    # Remover valores maiores que 50000 das chaves selecionadas
+                    st.write(f"Removendo valores maiores que 50000 da coluna '{key_column1}' na Planilha 1...")
+                    data1 = data1[data1[key_column1] <= 50000]
+                    st.write(f"Planilha 1 filtrada: {len(data1)} registros restantes.")
+
+                    st.write(f"Removendo valores maiores que 50000 da coluna '{key_column2}' na Planilha 2...")
+                    data2 = data2[data2[key_column2] <= 50000]
+                    st.write(f"Planilha 2 filtrada: {len(data2)} registros restantes.")
+
+                    # Realizar a junção dos dados
+                    st.write("Mesclando as duas bases...")
+                    merged_data: pd.DataFrame = pd.merge(
+                        data1,
+                        data2,
+                        left_on=key_column1,
+                        right_on=key_column2,
+                        how='inner'  # Realizando junção interna para remover linhas sem correspondência
+                    )
+                    st.write(f"Bases mescladas com sucesso! {len(merged_data)} registros resultantes.")
                     st.write(merged_data.head())
-                    st.write(f"len(merged_data): {len(merged_data)}")
-                    
+
+                    # Remover colunas duplicadas
+                    st.write("Removendo colunas duplicadas...")
+                    duplicated_columns = merged_data.columns[merged_data.T.duplicated()]
+                    merged_data = merged_data.loc[:, ~merged_data.T.duplicated()]
+                    st.write(f"\nColunas duplicadas removidas: {list(duplicated_columns)}")
+                    st.write(f"Dimensões finais após remover colunas duplicadas: {merged_data.shape}")
+
+                    # Exibir os dados resultantes
+                    st.write("Dados finais após junção e remoção de duplicatas:")
+                    st.write(merged_data.head())
+
+                    # Baixar o resultado final
                     if not merged_data.empty:
-                        self.download_spreadsheet(merged_data, "merged_data.csv")
+                        self.download_spreadsheet(merged_data, "classif_prod_merged.csv")
                     else:
                         st.write("O DataFrame está vazio. Nenhum arquivo CSV será gerado.")
+            
             except Exception as e:
                 st.error(f"Erro ao processar as planilhas: {e}")
+
 
     def __generate_graph(self) -> None:
         """
@@ -214,5 +246,5 @@ class Dashboard:
 
 if __name__ == '__main__':
     dashboard = Dashboard()
-    uploader = GoogleDriveUploader(dashboard)  
+    #uploader = GoogleDriveUploader(dashboard)  
     dashboard.run()

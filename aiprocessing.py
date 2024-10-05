@@ -1,6 +1,7 @@
 from typing import List, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
+
 import streamlit as st
 from preprocessing import Preprocessing
 from sqlalchemy import create_engine
@@ -203,5 +204,5 @@ class AiProcessing:
                 st.error("Nenhuma ação primária encontrada para associar.")
         except Exception as e:
             st.error(f"Erro ao salvar métricas no banco de dados: {e}")
-
+    
 
