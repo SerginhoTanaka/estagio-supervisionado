@@ -128,7 +128,7 @@ class Preprocessing:
             final_df = pd.concat([numerical_df, encoded_data], axis=1)
         else:
             final_df = numerical_df
-
+        st.write(final_df)
         return final_df
 
     def __show(self, new_data: pd.DataFrame) -> None:

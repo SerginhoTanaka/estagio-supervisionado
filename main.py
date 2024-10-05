@@ -35,7 +35,7 @@ class Dashboard:
         st.sidebar.title("CooperGest")
         selected_option: str = st.sidebar.radio(
             "Selecione uma opção",
-            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Chat", "Upload de arquivo", "Mesclar Bases", "Relatórios"]
+            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Upload de arquivo", "Mesclar Bases", "Relatórios"]
         )
         options: dict[str, callable] = {
             "Pré-processamento": self.preprocessor.run,
