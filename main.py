@@ -7,6 +7,8 @@ from models import TBPrimaryActions
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from report import ReportsDashboard
+from file_viewer import FileViewer
+from drive_upload import GoogleDriveUploader
 engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -19,7 +21,6 @@ class Dashboard:
         self.data: pd.DataFrame = st.session_state.get('data', pd.DataFrame())
         self.processed_data: pd.DataFrame = st.session_state.get('processed_data', None)
         self.dataset_name: str = st.session_state.get('dataset_name', 'Desconhecido')
-
         from preprocessing import Preprocessing 
         self.preprocessor: Preprocessing = Preprocessing(self.data)
         from description import Description 
@@ -35,17 +36,18 @@ class Dashboard:
         st.sidebar.title("CooperGest")
         selected_option: str = st.sidebar.radio(
             "Selecione uma opção",
-            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Upload de arquivo", "Mesclar Bases", "Relatórios"]
+            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Upload de arquivo", "Mesclar Bases", "Relatórios", "Visualizar Arquivos", "Updolad do Drive"]
         )
         options: dict[str, callable] = {
             "Pré-processamento": self.preprocessor.run,
             "Análise sem pré-processamento": self.__generate_graph,
             "Descrição":self.description.run,
             "Processamento com IA": self.__process_with_ai,
-            "Chat": lambda: st.write('Em desenvolvimento...'),
             "Upload de arquivo": self.__upload_file,
             "Mesclar Bases": self.__merge_spreadsheets,
-            "Relatórios": ReportsDashboard().run
+            "Relatórios": ReportsDashboard().run,
+            "Visualizar Arquivos": FileViewer().visualizar_arquivos,
+            "Updolad do Drive": GoogleDriveUploader().display
             
         }
         
