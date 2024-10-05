@@ -47,7 +47,7 @@ class Dashboard:
             "Mesclar Bases": self.__merge_spreadsheets,
             "Relatórios": ReportsDashboard().run,
             "Visualizar Arquivos": FileViewer().visualizar_arquivos,
-            "Updolad do Drive": GoogleDriveUploader().display
+            "Updolad do Drive": GoogleDriveUploader(self).display
             
         }
         
@@ -106,13 +106,21 @@ class Dashboard:
         file: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload arquivo CSV", type="csv")
         if file is not None:
             try:
-                self.data = pd.read_csv(file)
-                st.session_state.data = self.data  
-                st.session_state['dataset_name'] = file.name  
+                self.save_df(file)
                 st.write("Arquivo CSV carregado com sucesso!")
-                st.write(self.data.head())
             except Exception as e:
                 st.error(f"Erro ao carregar o arquivo: {e}")
+
+    def save_df(self, data: pd.DataFrame) -> None:
+        if isinstance(data, pd.DataFrame):
+            print('data is pd.DataFrame')
+            st.session_state.data = self.data  
+            st.session_state['dataset_name'] = "Drive"
+        else:
+            print('data is not pd.DataFrame')
+            st.session_state.data = pd.read_csv(data)
+            st.session_state['dataset_name'] = data.name if hasattr(data, 'name') else 'Desconhecido'
+
     @staticmethod
     @st.cache_data
     def convert_df(_df: pd.DataFrame) -> bytes:
@@ -206,4 +214,5 @@ class Dashboard:
 
 if __name__ == '__main__':
     dashboard = Dashboard()
+    uploader = GoogleDriveUploader(dashboard)  
     dashboard.run()
