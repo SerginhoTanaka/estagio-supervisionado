@@ -77,7 +77,3 @@ class FileViewer:
         valores_unicos_str = ', '.join(map(str, valores_unicos))
         st.text_area("Copie o texto abaixo:", value=valores_unicos_str)
 
-# Executando a aplicação
-if __name__ == '__main__':
-    viewer = FileViewer()
-    viewer.run()
