@@ -1,4 +1,5 @@
 from typing import List, Optional
+
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -38,7 +39,7 @@ class Preprocessing:
         """
         cleaning_method = st.sidebar.multiselect(
             'Selecione um método de limpeza:',
-            ('nenhum', 'Remover linhas com valores nulos', 'Remover linhas duplicadas', 'Remover ruídos'),
+            ('nenhum', 'Imputar medias em linhas com valores nulos', 'Remover linhas duplicadas', 'Remover ruídos'),
             default='nenhum'
         )
         self.cleaning_methods = cleaning_method
@@ -52,6 +53,23 @@ class Preprocessing:
             ('nenhum', 'MinMaxScaler', 'StandardScaler', 'RobustScaler', 'Normalizer', 'MaxAbsScaler'),
             index=0
         )
+        if preprocessing_method == 'MinMaxScaler':
+            st.sidebar.write("Você selecionou MinMaxScaler. Este método escala os dados para um intervalo específico, geralmente entre 0 e 1.")
+            st.sidebar.write("Dica: O MinMaxScaler é útil quando você deseja preservar a forma geral da distribuição dos dados, mas normalizá-los para um intervalo específico.")
+        elif preprocessing_method == 'StandardScaler':
+            st.sidebar.write("Você selecionou StandardScaler. Este método padroniza os dados, subtraindo a média e dividindo pelo desvio padrão.")
+            st.sidebar.write("Dica: O StandardScaler é útil quando você deseja transformar seus dados para que eles tenham média zero e desvio padrão igual a 1.")
+        elif preprocessing_method == 'RobustScaler':
+            st.sidebar.write("Você selecionou RobustScaler. Este método escala os dados usando estatísticas robustas para lidar com outliers.")
+            st.sidebar.write("Dica: O RobustScaler é útil quando seus dados contêm outliers e você deseja escalá-los usando estatísticas resistentes a outliers.")
+        elif preprocessing_method == 'Normalizer':
+            st.sidebar.write("Você selecionou Normalizer. Este método normaliza os dados para que cada amostra tenha norma unitária.")
+            st.sidebar.write("Dica: O Normalizer é útil quando você deseja normalizar cada amostra individualmente, independentemente das outras amostras.")
+        elif preprocessing_method == 'MaxAbsScaler':
+            st.sidebar.write("Você selecionou MaxAbsScaler. Este método escala os dados para o intervalo [-1, 1] dividindo pelo valor máximo absoluto.")
+            st.sidebar.write("Dica: O MaxAbsScaler é útil quando você deseja preservar a relação de ordem dos seus dados, mas normalizá-los para o intervalo [-1, 1].")
+        else:
+            st.sidebar.write("Nenhum método de normalização selecionado.")
         self.scaler = preprocessing_method
 
     def __apply_preprocessing(self) -> pd.DataFrame:
@@ -71,6 +89,12 @@ class Preprocessing:
 
         scaler = scaler_map.get(self.scaler)
         df = self.data.copy()
+
+        # Identificar colunas de data e converter para dias desde 1970-01-01
+        date_cols = df.select_dtypes(include=['datetime64', 'datetime']).columns
+        for col in date_cols:
+            # Converter para o número de dias desde 01-01-1970
+            df[col] = (df[col] - pd.Timestamp("1970-01-01")) // pd.Timedelta('1D')  # Diferença em dias
 
         # Aplicar limpeza
         if 'nenhum' not in self.cleaning_methods:
@@ -101,8 +125,8 @@ class Preprocessing:
         # Passar os dados normalizados para o processamento categórico
         final_df = self.preprocess_categorical_data(df, numerical_df)
 
-        st.write("Dados após pré-processamento:")
-        st.write(final_df)
+        st.write("Dados após pré-processamento (apenas 3 amostras):")
+        st.write(final_df.head(3))  # Exibe apenas 3 linhas
 
         return final_df
 
@@ -119,17 +143,18 @@ class Preprocessing:
         """
         categorical_df = df.select_dtypes(include=['object'])
 
+        # Se não houver colunas categóricas, não precisamos de OneHotEncoding
         if not categorical_df.empty:
-            enc = OneHotEncoder(sparse_output=False)  # `sparse_output=False` para retornar um DataFrame
-            encoded_data = pd.DataFrame(enc.fit_transform(categorical_df), columns=enc.get_feature_names_out(categorical_df.columns))
+            # Aqui removemos o OneHotEncoder e não aplicamos nada sobre as colunas categóricas
+            st.write("Não há encoding necessário para colunas categóricas")
 
-            st.write(encoded_data)
-
-            final_df = pd.concat([numerical_df, encoded_data], axis=1)
+            final_df = pd.concat([numerical_df, categorical_df], axis=1)
         else:
             final_df = numerical_df
         st.write(final_df)
         return final_df
+
+   
 
     def __show(self, new_data: pd.DataFrame) -> None:
         """
@@ -139,12 +164,12 @@ class Preprocessing:
             new_data (pd.DataFrame): DataFrame após aplicação dos métodos.
         """
         st.write("Tabela original:")
-        st.write(self.data.count())
-        st.write("Tabela após pré-processamento:")
-        st.write(new_data.count())
+        st.write(self.data.head(3))  # Exibe apenas 3 amostras
+        st.write("Tabela após pré-processamento (apenas 3 amostras):")
+        st.write(new_data.head(3))  # Exibe apenas 3 amostras
         Dashboard().download_spreadsheet(new_data, "preprocessed_data.csv")
 
-    def __clean_null(self, df: pd.DataFrame) -> pd.DataFrame:
+    def __clean_null(self, df: pd.DataFrame) -> pd.DataFrame: 
         """
         Remove linhas com valores nulos do DataFrame.
 
