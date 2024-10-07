@@ -8,7 +8,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from report import ReportsDashboard
 from file_viewer import FileViewer
-# from drive_upload import GoogleDriveUploader
 engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -38,6 +37,8 @@ class Dashboard:
             "Selecione uma opção",
             ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Upload de arquivo", "Mesclar Bases", "Relatórios", "Visualizar Arquivos", "Updolad do Drive"]
         )
+        from drive_upload import GoogleDriveUploader
+
         options: dict[str, callable] = {
             "Pré-processamento": self.preprocessor.run,
             "Análise sem pré-processamento": self.__generate_graph,
@@ -47,7 +48,7 @@ class Dashboard:
             "Mesclar Bases": self.__merge_spreadsheets,
             "Relatórios": ReportsDashboard().run,
             "Visualizar Arquivos": FileViewer().visualizar_arquivos,
-            #"Updolad do Drive": GoogleDriveUploader(self).display
+            "Updolad do Drive": GoogleDriveUploader(self).display
             
         }
         
@@ -106,20 +107,18 @@ class Dashboard:
         file: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload arquivo CSV", type="csv")
         if file is not None:
             try:
-                self.save_df(file)
-                st.write("Arquivo CSV carregado com sucesso!")
+                data = pd.read_csv(file)
+                self.save_df(data,file.name)
             except Exception as e:
                 st.error(f"Erro ao carregar o arquivo: {e}")
 
-    def save_df(self, data: pd.DataFrame) -> None:
+    def save_df(self, data: pd.DataFrame,df_name) -> None:
         if isinstance(data, pd.DataFrame):
             print('data is pd.DataFrame')
-            st.session_state.data = self.data  
-            st.session_state['dataset_name'] = "Drive"
-        else:
-            print('data is not pd.DataFrame')
-            st.session_state.data = pd.read_csv(data)
-            st.session_state['dataset_name'] = data.name if hasattr(data, 'name') else 'Desconhecido'
+            st.session_state.data = data 
+            st.session_state['dataset_name'] = df_name
+            st.write("Arquivo CSV carregado com sucesso!")
+
 
     @staticmethod
     @st.cache_data
