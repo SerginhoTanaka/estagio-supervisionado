@@ -123,7 +123,6 @@ class Preprocessing:
             enc = OneHotEncoder(sparse_output=False)  # `sparse_output=False` para retornar um DataFrame
             encoded_data = pd.DataFrame(enc.fit_transform(categorical_df), columns=enc.get_feature_names_out(categorical_df.columns))
 
-            st.write(encoded_data)
 
             final_df = pd.concat([numerical_df, encoded_data], axis=1)
         else:

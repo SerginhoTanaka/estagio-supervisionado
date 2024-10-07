@@ -65,12 +65,10 @@ class Description:
                 y = le.fit_transform(y)
                 st.write(f"Coluna alvo '{self.target_column}' codificada:", pd.DataFrame({self.target_column: y}))
 
-            # Treina um modelo de RandomForest para calcular a importância das features
             model = RandomForestClassifier()
             model.fit(X_processed, y)
             importance = model.feature_importances_
 
-            # Criar um DataFrame para mostrar a importância das features
             feature_importance_df = pd.DataFrame({
                 'Feature': X_processed.columns,
                 'Importance': importance
