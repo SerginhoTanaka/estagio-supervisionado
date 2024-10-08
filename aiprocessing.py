@@ -178,7 +178,7 @@ class AiProcessing:
                 self.__save_metrics_to_db(metrics)
 
         except Exception as e:
-            st.error(f"Erro durante o treinamento e avaliação: {e}")
+            st.error(f"Erro durante o treinamento e avaliação: não é possível realizar a {'Regressão' if is_regression else 'Classificação'} na coluna {y.name}")
     def __save_metrics_to_db(self, metrics: dict) -> None:
         """
         Salva as métricas no banco de dados.
