@@ -24,12 +24,16 @@ class Preprocessing:
         Returns:
             Optional[pd.DataFrame]: DataFrame pré-processado, ou None se nenhuma ação for realizada.
         """
+
+        st.title("Pré processamento")
+        st.write("Realize as configurações de Pré processamento")
+
         self.select_preprocessing_method()
         self.select_cleaning_method()
-        if st.sidebar.button('Aplicar'):
+        if st.button('Aplicar'):
             new_data = self.__apply_preprocessing()
-            show = st.sidebar.checkbox('Mostrar dados após pré-processamento', value=True)
-            if new_data is not None and show:
+            #show = st.checkbox('Mostrar dados após pré-processamento', value=True)
+            if new_data is not None: #and show:
                 self.__show(new_data)
             return new_data
         return None
@@ -38,7 +42,7 @@ class Preprocessing:
         """
         Exibe uma caixa de seleção no sidebar para selecionar métodos de limpeza.
         """
-        cleaning_method = st.sidebar.multiselect(
+        cleaning_method = st.multiselect(
             'Selecione um método de limpeza:',
             ('nenhum','Remover valores nulos', 'Imputar valores médios', 'Remover linhas duplicadas', 'Remover ruídos'),
             default='nenhum'
@@ -49,25 +53,33 @@ class Preprocessing:
         """
         Exibe uma caixa de seleção no sidebar para selecionar método de normalização.
         """
-        preprocessing_method = st.sidebar.selectbox(
+        preprocessing_method = st.selectbox(
             'Selecione um método de normalização:',
             ('nenhum', 'MinMaxScaler', 'StandardScaler', 'RobustScaler', 'MaxAbsScaler'),
             index=0
         )
+
         if preprocessing_method == 'MinMaxScaler':
-            st.sidebar.write("Você selecionou MinMaxScaler. Este método escala os dados para um intervalo específico, geralmente entre 0 e 1.")
-            st.sidebar.write("Dica: O MinMaxScaler é útil quando você deseja preservar a forma geral da distribuição dos dados, mas normalizá-los para um intervalo específico.")
+            with st.expander("Informações sobre o MinMaxScaler"):
+                st.write("Você selecionou MinMaxScaler. Este método escala os dados para um intervalo específico, geralmente entre 0 e 1.")
+                st.write("Dica: O MinMaxScaler é útil quando você deseja preservar a forma geral da distribuição dos dados, mas normalizá-los para um intervalo específico.")
+
         elif preprocessing_method == 'StandardScaler':
-            st.sidebar.write("Você selecionou StandardScaler. Este método padroniza os dados, subtraindo a média e dividindo pelo desvio padrão.")
-            st.sidebar.write("Dica: O StandardScaler é útil quando você deseja transformar seus dados para que eles tenham média zero e desvio padrão igual a 1.")
+            with st.expander("Informações sobre o StandardScaler"):
+                st.write("Você selecionou StandardScaler. Este método padroniza os dados, subtraindo a média e dividindo pelo desvio padrão.")
+                st.write("Dica: O StandardScaler é útil quando você deseja transformar seus dados para que eles tenham média zero e desvio padrão igual a 1.")
+
         elif preprocessing_method == 'RobustScaler':
-            st.sidebar.write("Você selecionou RobustScaler. Este método escala os dados usando estatísticas robustas para lidar com outliers.")
-            st.sidebar.write("Dica: O RobustScaler é útil quando seus dados contêm outliers e você deseja escalá-los usando estatísticas resistentes a outliers.")
+            with st.expander("Informações sobre o RobustScaler"):
+                st.write("Você selecionou RobustScaler. Este método escala os dados usando estatísticas robustas para lidar com outliers.")
+                st.write("Dica: O RobustScaler é útil quando seus dados contêm outliers e você deseja escalá-los usando estatísticas resistentes a outliers.")
+
         elif preprocessing_method == 'MaxAbsScaler':
-            st.sidebar.write("Você selecionou MaxAbsScaler. Este método escala os dados para o intervalo [-1, 1] dividindo pelo valor máximo absoluto.")
-            st.sidebar.write("Dica: O MaxAbsScaler é útil quando você deseja preservar a relação de ordem dos seus dados, mas normalizá-los para o intervalo [-1, 1].")
+            with st.expander("Informações sobre o MaxAbsScaler"):
+                st.write("Você selecionou MaxAbsScaler. Este método escala os dados para o intervalo [-1, 1] dividindo pelo valor máximo absoluto.")
+                st.write("Dica: O MaxAbsScaler é útil quando você deseja preservar a relação de ordem dos seus dados, mas normalizá-los para o intervalo [-1, 1].")
         else:
-            st.sidebar.write("Nenhum método de normalização selecionado.")
+            st.write("Nenhum método de normalização selecionado.")
         self.scaler = preprocessing_method
 
     def __apply_preprocessing(self) -> pd.DataFrame:
@@ -110,14 +122,16 @@ class Preprocessing:
                 for col in numerical_df.columns:
                     scaled_data = scaler.fit_transform(numerical_df[[col]])
                     numerical_df[col] = scaled_data
-                    st.write(f"{col} normalizado pelo método {self.scaler}:")
-                    st.write(numerical_df[[col]])
+                    st.write(f"Coluna {col} normalizado pelo método {self.scaler}:")
+                    with st.expander("Informações sobre o MaxAbsScaler"):
+                        st.write(numerical_df[[col]])
             else:
                 st.write("Não há colunas numéricas para normalização.")
         else:
             st.write("Nenhum método de normalização selecionado.")
 
         # Passar os dados normalizados para o processamento categórico
+        st.write("Dados normalizados após a execução")
         final_df = self.preprocess_categorical_data(df, numerical_df)
 
         st.write("Dados após pré-processamento (apenas 3 amostras):")

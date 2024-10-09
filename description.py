@@ -12,12 +12,10 @@ class Description:
 
     def run(self) -> None:
         try:
-            st.write("""
-            # Description Page
-            """)
+            st.title("Descrição dos dados")
 
             # Seletor de colunas para o alvo
-            self.target_column = st.selectbox("Selecione a coluna alvo:", self.data.columns.tolist())
+            self.target_column = st.selectbox("Selecione a coluna com dados contínuos para serem descritos os dados:", self.data.columns.tolist())
 
             if self.target_column:
                 # Exibe o tipo de dado de cada coluna
@@ -29,14 +27,14 @@ class Description:
                 # Calcula e mostra a importância das features
                 feature_importance = self.__calculate_feature_importance()
                 if feature_importance is not None:
-                    st.write("### Importância das Features")
+                    st.write("### Importância das Features (Colunas)")
                     st.write(feature_importance)
         except Exception as e:
             st.error(f"Ocorreu um erro ao tentar exibir as informações: {e}")
 
     def _select_columns(self) -> List[str]:
         try:
-            columns = st.sidebar.multiselect(
+            columns = st.multiselect(
                 "Selecione as colunas:",
                 self.data.columns.tolist()
             )

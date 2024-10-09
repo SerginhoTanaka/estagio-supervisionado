@@ -2,13 +2,15 @@ import streamlit as st
 import pandas as pd
 import gdown
 from main import Dashboard
+
+
 class GoogleDriveUploader:
+
     def __init__(self, dashboard: Dashboard):
         self.dashboard = dashboard  # Armazenar a instância de Dashboard
         self.drive_link = ""
         self.name = ""
     def display(self):
-        st.header("📂 Ler Arquivo do Google Drive")
         st.subheader('Insira o link do arquivo do Google Drive')
         self.drive_link = st.text_input("Link do Google Drive", placeholder="https://drive.google.com/file/d/FILE_ID/view?usp=sharing")
         self.name = st.text_input("Informe o nome do arquivo")
@@ -40,3 +42,4 @@ class GoogleDriveUploader:
         elif '/d/' in link:
             return link.split('/d/')[-1].split('/')[0]
         return None
+

@@ -8,9 +8,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from report import ReportsDashboard
 from file_viewer import FileViewer
+
+from streamlit_option_menu import option_menu
+from drive_upload import GoogleDriveUploader
+import streamlit_antd_components as sac
+
 engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
 session = Session()
+
 class Dashboard:
     """
     A class for data preprocessing and visualization.
@@ -28,44 +34,63 @@ class Dashboard:
         self.aiprocessing: AiProcessing = AiProcessing(self.data,self.processed_data)
         if 'action_saved' not in st.session_state:
             st.session_state['action_saved'] = False
+
     def run(self) -> None:
         """
         Run the dashboard.
         """
-        st.sidebar.title("CooperGest")
-        selected_option: str = st.sidebar.radio(
-            "Selecione uma opção",
-            ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Upload de arquivo", "Mesclar Bases", "Relatórios", "Visualizar Arquivos", "Updolad do Drive"]
-        )
-        from drive_upload import GoogleDriveUploader
+        with st.sidebar:
+            selected_option = option_menu(
+                "CooperGuest", 
+                ["Home", "Upload de arquivo", "Visualizar Arquivos", "Pré-processamento", "Análise sem pré-processamento", "Descrição", 
+                "Processamento com IA",  "Mesclar Bases", "Relatórios"
+                ], 
+                icons=['house', 'file-earmark-arrow-up', 'search', 'gear', 'sliders', 'card-text', 'clipboard-data', 
+                     'union', 'clipboard-pulse', 
+                    ], 
+                menu_icon="tree", 
+                default_index=1,
+            )
 
+        # Dicionário de opções com suas respectivas funções
         options: dict[str, callable] = {
             "Pré-processamento": self.preprocessor.run,
             "Análise sem pré-processamento": self.__generate_graph,
-            "Descrição":self.description.run,
+            "Descrição": self.description.run,
             "Processamento com IA": self.__process_with_ai,
             "Upload de arquivo": self.__upload_file,
             "Mesclar Bases": self.__merge_spreadsheets,
             "Relatórios": ReportsDashboard().run,
             "Visualizar Arquivos": FileViewer().visualizar_arquivos,
-            "Updolad do Drive": GoogleDriveUploader(self).display
-            
+            "Upload do Drive": GoogleDriveUploader(self).display
         }
+
+        # Executar a função correspondente ao item selecionado
+        if selected_option in options:
+            result = options[selected_option]()
         
-        result = options[selected_option]()
+        # Verificar a última opção e salvar a ação
         last_option = st.session_state.get('last_option', None)
         if selected_option != last_option:
             if selected_option in ["Pré-processamento", "Processamento com IA"]:
                 is_ai = (selected_option == "Processamento com IA")
                 self.__save_primary_action(selected_option, is_ai)
             st.session_state['last_option'] = selected_option
-            
+
+        # Processamento com IA
         if selected_option == "Processamento com IA":
             processed_data, method = result
             if method == 'Regressão':
                 self.aiprocessing.regression()
             elif method == 'Classificação':
                 self.aiprocessing.classification()
+
+        # Gerenciar chaves únicas para widgets selectbox ou similares
+        if selected_option == "Pré-processamento":
+            st.selectbox('Escolha uma opção de pré-processamento:', options=['Opção 1', 'Opção 2'], key='preprocessing_selectbox')
+
+        elif selected_option == "Processamento com IA":
+            st.selectbox('Escolha o método de IA:', options=['Regressão', 'Classificação'], key='ia_selectbox')
 
     def __save_primary_action(self, action_name: str, is_ai: bool) -> None:
         """
@@ -104,21 +129,38 @@ class Dashboard:
         """
         Upload a file.
         """
-        file: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload arquivo CSV", type="csv")
-        if file is not None:
-            try:
-                data = pd.read_csv(file)
-                self.save_df(data,file.name)
-            except Exception as e:
-                st.error(f"Erro ao carregar o arquivo: {e}")
+        st.title("Upload de arquivo")
+        st.write("Escolha o tipo de upload")
 
-    def save_df(self, data: pd.DataFrame,df_name) -> None:
+        # Componente de escolha de upload
+        upload_option = sac.segmented(
+            items=[
+                sac.SegmentedItem(label='Upload', icon='file-earmark-arrow-up'),
+                sac.SegmentedItem(label='Upload do Drive', icon='cloud-arrow-up')
+            ], align='left', size='lg'
+        )
+
+        # Lógica para upload de arquivos
+        if upload_option == 'Upload':
+            st.subheader('Insira um arquivo .csv')
+            file: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Insira um arquivo .CSV a partir do seu dispositivo", type="csv")
+
+            if file is not None:
+                try:
+                    data = pd.read_csv(file)
+                    self.save_df(data, file.name)
+                except Exception as e:
+                    st.error(f"Erro ao carregar o arquivo: {e}")
+
+        elif upload_option == 'Upload do Drive':
+            # Executa a funcionalidade para upload do Google Drive
+            GoogleDriveUploader(self).display()
+
+    def save_df(self, data: pd.DataFrame, df_name) -> None:
         if isinstance(data, pd.DataFrame):
-            print('data is pd.DataFrame')
             st.session_state.data = data 
             st.session_state['dataset_name'] = df_name
             st.write("Arquivo CSV carregado com sucesso!")
-
 
     @staticmethod
     @st.cache_data
@@ -209,10 +251,13 @@ class Dashboard:
         """
         Generate a graph without preprocessing.
         """
-        st.sidebar.write("Análise sem pré-processamento")
+        st.title("Análise sem pré-processamento")
+        st.write("Escolha as colunas para fazer a análise sem pré-processamento")
         columns: List[str] = self.description._select_columns()
 
-        self.__plot_graph(self.data, columns)
+        with st.expander(f"Informações sobre das colunas"):
+            st.write(f"Infos da coluna {columns}")
+            self.__plot_graph(self.data, columns)
 
     def __plot_graph(self, not_cleaned_data: pd.DataFrame, columns: Optional[List[str]] = None) -> None:
         """

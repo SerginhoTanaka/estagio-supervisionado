@@ -9,9 +9,8 @@ class FileViewer:
 
     def visualizar_arquivos(self):
         """Método para visualizar o arquivo CSV ou XLSX."""
-        st.header("📊 Visualizar Arquivo")
-        st.subheader('Upload de Arquivo')
-        st.text("Extensões permitidas: CSV, XLSX")
+        st.title("Visualizar Arquivo")
+        st.write("Extensões permitidas: CSV, XLSX")
         
         uploaded_file = st.file_uploader("Escolha um arquivo", type=["csv", "xlsx"])
         if uploaded_file:
@@ -75,5 +74,5 @@ class FileViewer:
         qtd_linhas.metric(label="Quantidade total de linhas no DataFrame", value=quantidade_linhas)
 
         valores_unicos_str = ', '.join(map(str, valores_unicos))
-        st.text_area("Copie o texto abaixo:", value=valores_unicos_str)
+        st.text_area("Valores únicos:", value=valores_unicos_str)
 
