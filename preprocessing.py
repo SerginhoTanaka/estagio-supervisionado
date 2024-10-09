@@ -179,6 +179,14 @@ class Preprocessing:
         st.write(self.data.head(3))  # Exibe apenas 3 amostras
         st.write("Tabela após pré-processamento (apenas 3 amostras):")
         st.write(new_data.head(3))  # Exibe apenas 3 amostras
+        print(new_data)
+        file_name = st.text_input("Digite o nome do arquivo CSV:")
+
+# Garante que o nome do arquivo termine com '.csv'
+        if not file_name.endswith('.csv'):
+            file_name += '.csv'        
+        if st.button('Usar dataset pre-processado'):
+            Dashboard().save_df(new_data, file_name)
         Dashboard().download_spreadsheet(new_data, "preprocessed_data.csv")
 
     def __clean_null(self, df: pd.DataFrame) -> pd.DataFrame: 

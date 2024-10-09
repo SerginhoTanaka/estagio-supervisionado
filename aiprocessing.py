@@ -39,48 +39,29 @@ class AiProcessing:
         """
         try:
             method: str = st.selectbox('Selecione um modelo de IA:', ('', 'Regressão', 'Classificação'))
-            preprocessing_option: str = st.selectbox('Deseja pré-processar os dados?', ('', 'Sim', 'Não'))
-            
-            if method and preprocessing_option:
-                if preprocessing_option == 'Sim':
-                    norm = self.__preprocessing()
-                    return norm, method
-                elif preprocessing_option == 'Não':
-                    numerical_df: pd.DataFrame = self.data.select_dtypes(exclude=['object'])
-                    preprocessing = Preprocessing(self.data)
-                    final_data: pd.DataFrame = preprocessing.preprocess_categorical_data(self.data, numerical_df)
-                    self.data = final_data
-                    return final_data, method
-            return None, None
+            categorical_columns: List[str] = self.data.select_dtypes(include=['object']).columns.tolist()
+            if categorical_columns:
+                numerical_df: pd.DataFrame = self.data.select_dtypes(exclude=['object'])
+                preprocessing = Preprocessing(self.data)
+                final_data: pd.DataFrame = preprocessing.preprocess_categorical_data(self.data, numerical_df)
+                self.data = final_data
+                return final_data, method
+            else:
+                return self.data, method
 
         except Exception as e:
             st.error(f"Ocorreu um erro durante a execução: {e}")
             return None, None
 
-    def __preprocessing(self) -> Optional[pd.DataFrame]:
-        """
-        Método para executar o pré-processamento dos dados.
-        :return: DataFrame com os dados pré-processados.
-        """
-        try:
-            preprocessing = Preprocessing(self.data)
-            processed_data: pd.DataFrame = preprocessing.run()
-            if processed_data is not None:
-                st.write('Dados pré-processados!')
-            return processed_data
-        except Exception as e:
-            st.error(f"Erro no pré-processamento: {e}")
-            return None
 
     def regression(self) -> None:
         """
         Método genérico para executar a regressão.
         """
         try:
-            data_to_use: pd.DataFrame = self.normalized_data if self.normalized_data is not None else self.data
             self.ai = st.selectbox('Selecione um modelo de regressão:', 
                                    ('', 'Linear Regression', 'SVR', 'Random Forest'))
-            self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', data_to_use.columns)
+            self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:',self.data.columns)
             
             if self.ai:
                 model = self.__get_model()
@@ -94,9 +75,8 @@ class AiProcessing:
         """
         try:
             st.subheader('Modelos de Classificação Disponíveis:')
-            data_to_use: pd.DataFrame = self.normalized_data if self.normalized_data is not None else self.data
 
-            self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', data_to_use.columns)
+            self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', self.data.columns)
             self.ai = st.selectbox('Selecione um modelo de classificação:', 
                                    ('', 'Logistic Regression', 'KNN', 'Random Forest', 'Decision Tree'))
 
@@ -132,7 +112,7 @@ class AiProcessing:
         :return: Tuple contendo as features (X) e a target (y).
         """
         try:
-            data_to_use: pd.DataFrame = self.normalized_data if self.normalized_data is not None else self.data
+            data_to_use: pd.DataFrame = self.data
             X: pd.DataFrame = data_to_use.drop(columns=[self.target_column])
             y: pd.Series = data_to_use[self.target_column]
             return X, y
