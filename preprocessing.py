@@ -179,7 +179,6 @@ class Preprocessing:
         st.write(self.data.head(3))  # Exibe apenas 3 amostras
         st.write("Tabela após pré-processamento (apenas 3 amostras):")
         st.write(new_data.head(3))  # Exibe apenas 3 amostras
-        print(new_data)
         file_name = st.text_input("Digite o nome do arquivo CSV:")
 
 # Garante que o nome do arquivo termine com '.csv'
