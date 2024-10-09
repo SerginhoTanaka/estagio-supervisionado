@@ -10,8 +10,9 @@ from report import ReportsDashboard
 from file_viewer import FileViewer
 
 from streamlit_option_menu import option_menu
-from drive_upload import GoogleDriveUploader
+#from drive_upload import GoogleDriveUploader
 import streamlit_antd_components as sac
+import extra_streamlit_components as stx
 
 engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
@@ -39,15 +40,20 @@ class Dashboard:
         """
         Run the dashboard.
         """
+
+        image_url = "https://a10br.com/wp-content/uploads/2022/08/Imagens-site-A10_Integrada.png"
+
         with st.sidebar:
+            # Exibir a imagem na barra lateral
+            st.image(image_url, width=200)
+
+            # Menu lateral
             selected_option = option_menu(
-                "CooperGuest", 
+                "",  # Deixa o título vazio, já que a imagem está no topo
                 ["Home", "Upload de arquivo", "Visualizar Arquivos", "Pré-processamento", "Análise sem pré-processamento", "Descrição", 
-                "Processamento com IA",  "Mesclar Bases", "Relatórios"
-                ], 
+                "Processamento com IA",  "Mesclar Bases", "Relatórios"], 
                 icons=['house', 'file-earmark-arrow-up', 'search', 'gear', 'sliders', 'card-text', 'clipboard-data', 
-                     'union', 'clipboard-pulse', 
-                    ], 
+                    'union', 'clipboard-pulse'], 
                 menu_icon="tree", 
                 default_index=1,
             )
@@ -62,7 +68,7 @@ class Dashboard:
             "Mesclar Bases": self.__merge_spreadsheets,
             "Relatórios": ReportsDashboard().run,
             "Visualizar Arquivos": FileViewer().visualizar_arquivos,
-            "Upload do Drive": GoogleDriveUploader(self).display
+            #"Upload do Drive": GoogleDriveUploader(self).display
         }
 
         # Executar a função correspondente ao item selecionado
@@ -154,7 +160,8 @@ class Dashboard:
 
         elif upload_option == 'Upload do Drive':
             # Executa a funcionalidade para upload do Google Drive
-            GoogleDriveUploader(self).display()
+            #GoogleDriveUploader(self).display()
+            print("google")
 
     def save_df(self, data: pd.DataFrame, df_name) -> None:
         if isinstance(data, pd.DataFrame):
