@@ -32,7 +32,7 @@ class Description:
                     st.write("### Importância das Features")
                     st.write(feature_importance)
         except Exception as e:
-            st.error(f"Ocorreu um erro ao tentar exibir as informações: {e}")
+            st.error(f"Não foi possível executar a descrição com a coluna alvo {self.target_column} selecionada.")	
 
     def _select_columns(self) -> List[str]:
         try:
