@@ -45,7 +45,7 @@ class Dashboard:
 
         with st.sidebar:
             # Exibir a imagem na barra lateral
-            st.image(image_url, width=200)
+            st.image(image_url, width=285)
 
             # Menu lateral
             selected_option = option_menu(
