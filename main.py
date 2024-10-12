@@ -50,9 +50,9 @@ class Dashboard:
             # Menu lateral
             selected_option = option_menu(
                 "",  # Deixa o título vazio, já que a imagem está no topo
-                ["Home", "Upload de arquivo", "Visualizar Arquivos", "Pré-processamento", "Análise sem pré-processamento", "Descrição", 
+                ["Upload de arquivo", "Visualizar Arquivos", "Pré-processamento", "Análise sem pré-processamento", "Descrição", 
                 "Processamento com IA",  "Mesclar Bases", "Relatórios"], 
-                icons=['house', 'file-earmark-arrow-up', 'search', 'gear', 'sliders', 'card-text', 'clipboard-data', 
+                icons=[ 'file-earmark-arrow-up', 'search', 'gear', 'sliders', 'card-text', 'clipboard-data', 
                     'union', 'clipboard-pulse'], 
                 menu_icon="tree", 
                 default_index=1,
@@ -87,6 +87,7 @@ class Dashboard:
         if selected_option == "Processamento com IA":
             processed_data, method = result
             if method == 'Regressão':
+                st.write("aguarde, realizando a regressão")
                 self.aiprocessing.regression()
             elif method == 'Classificação':
                 self.aiprocessing.classification()
@@ -95,8 +96,8 @@ class Dashboard:
         if selected_option == "Pré-processamento":
             st.selectbox('Escolha uma opção de pré-processamento:', options=['Opção 1', 'Opção 2'], key='preprocessing_selectbox')
 
-        elif selected_option == "Processamento com IA":
-            st.selectbox('Escolha o método de IA:', options=['Regressão', 'Classificação'], key='ia_selectbox')
+        # elif selected_option == "Processamento com IA":
+        #     st.selectbox('Escolha o método de IA:', options=['Regressão', 'Classificação'], key='ia_selectbox')
 
     def __save_primary_action(self, action_name: str, is_ai: bool) -> None:
         """
@@ -128,6 +129,8 @@ class Dashboard:
 
         st.session_state['processed_data'] = processed_data
         st.session_state['method'] = method
+
+        st.write(f"Processed data: {processed_data}, Method: {method}")  # Add this to ensure data and method are passed properly.
 
         return processed_data, method
 

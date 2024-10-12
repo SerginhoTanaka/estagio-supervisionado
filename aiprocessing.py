@@ -35,11 +35,18 @@ class AiProcessing:
 
     def run(self) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
         """
-        Método principal para executar o fluxo de pré-processamento e seleção do modelo de IA.
+        Main method to run preprocessing and AI model selection flow.
         """
         try:
-            method: str = st.selectbox('Selecione um modelo de IA:', ('', 'Regressão', 'Classificação'))
+            method: str = st.selectbox('Selecione um modelo de IA:', ('Selecione...', 'Regressão', 'Classificação'), key='model_selection')
+            st.write(f"Method selected: {method}")  # Add this to ensure the selected method is passed.
+            
+            if method == 'Selecione...':
+                st.write("Por favor, selecione um método válido.")
+                return None, None
+
             categorical_columns: List[str] = self.data.select_dtypes(include=['object']).columns.tolist()
+
             if categorical_columns:
                 numerical_df: pd.DataFrame = self.data.select_dtypes(exclude=['object'])
                 preprocessing = Preprocessing(self.data)
@@ -52,20 +59,27 @@ class AiProcessing:
         except Exception as e:
             st.error(f"Ocorreu um erro durante a execução: {e}")
             return None, None
-
-
     def regression(self) -> None:
         """
         Método genérico para executar a regressão.
         """
         try:
-            self.ai = st.selectbox('Selecione um modelo de regressão:', 
-                                   ('', 'Linear Regression', 'SVR', 'Random Forest'))
-            self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:',self.data.columns)
+            # Show only "Decision Tree" as enabled option for regression, others are visually disabled.
+            regression_models = ['Decision Tree (available)', 'Linear Regression (disabled)', 'SVR (disabled)', 'Random Forest (disabled)']
+
+            self.ai = st.selectbox('Selecione um modelo de regressão:', options=regression_models)
             
-            if self.ai:
-                model = self.__get_model()
-                self.__train_and_evaluate(model, is_regression=True)
+            self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', self.data.columns)
+
+            # Button to trigger regression
+            if st.button('Executar Regressão'):
+                if 'Decision Tree' in self.ai:
+                    st.write(f"Modelo de Regressão: {self.ai}, Coluna Alvo: {self.target_column}")
+                    model = DecisionTreeClassifier()  # Decision Tree is always chosen
+                    self.__train_and_evaluate(model, is_regression=True)
+                else:
+                    st.error("Por favor, selecione o modelo Decision Tree.")
+
         except Exception as e:
             st.error(f"Erro na regressão: {e}")
 
@@ -74,15 +88,22 @@ class AiProcessing:
         Método genérico para executar a classificação.
         """
         try:
-            st.subheader('Modelos de Classificação Disponíveis:')
+            # Show only "Decision Tree" as enabled option for classification, others are visually disabled.
+            classification_models = ['Decision Tree (available)', 'Logistic Regression (disabled)', 'KNN (disabled)', 'Random Forest (disabled)']
 
+            self.ai = st.selectbox('Selecione um modelo de classificação:', options=classification_models)
+            
             self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', self.data.columns)
-            self.ai = st.selectbox('Selecione um modelo de classificação:', 
-                                   ('', 'Logistic Regression', 'KNN', 'Random Forest', 'Decision Tree'))
 
-            if self.ai:
-                model = self.__get_model()
-                self.__train_and_evaluate(model, is_regression=False)
+            # Button to trigger classification
+            if st.button('Executar Classificação'):
+                if 'Decision Tree' in self.ai:
+                    st.write(f"Modelo de Classificação: {self.ai}, Coluna Alvo: {self.target_column}")
+                    model = DecisionTreeClassifier()  # Decision Tree is always chosen
+                    self.__train_and_evaluate(model, is_regression=False)
+                else:
+                    st.error("Por favor, selecione o modelo Decision Tree.")
+
         except Exception as e:
             st.error(f"Erro na classificação: {e}")
 
