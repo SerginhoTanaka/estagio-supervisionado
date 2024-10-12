@@ -74,7 +74,6 @@ class AiProcessing:
             # Button to trigger regression
             if st.button('Executar Regressão'):
                 if 'Decision Tree' in self.ai:
-                    st.write(f"Modelo de Regressão: {self.ai}, Coluna Alvo: {self.target_column}")
                     model = DecisionTreeClassifier()  # Decision Tree is always chosen
                     self.__train_and_evaluate(model, is_regression=True)
                 else:

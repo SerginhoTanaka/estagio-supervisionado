@@ -55,7 +55,7 @@ class Dashboard:
                 icons=[ 'file-earmark-arrow-up', 'search', 'gear', 'sliders', 'card-text', 'clipboard-data', 
                     'union', 'clipboard-pulse'], 
                 menu_icon="tree", 
-                default_index=1,
+                default_index=0,
             )
 
         # Dicionário de opções com suas respectivas funções
@@ -93,8 +93,8 @@ class Dashboard:
                 self.aiprocessing.classification()
 
         # Gerenciar chaves únicas para widgets selectbox ou similares
-        if selected_option == "Pré-processamento":
-            st.selectbox('Escolha uma opção de pré-processamento:', options=['Opção 1', 'Opção 2'], key='preprocessing_selectbox')
+        # if selected_option == "Pré-processamento":
+        #     st.selectbox('Escolha uma opção de pré-processamento:', options=['Opção 1', 'Opção 2'], key='preprocessing_selectbox')
 
         # elif selected_option == "Processamento com IA":
         #     st.selectbox('Escolha o método de IA:', options=['Regressão', 'Classificação'], key='ia_selectbox')
