@@ -61,7 +61,9 @@ class ReportsDashboard:
         except Exception as e:
             st.error(f"Ocorreu um erro ao obter as ações de IA para o dataset '{dataset_name}': {e}")
             return []
-
+    def __select_dataset(self, dataset_options: List[str]) -> str:
+        selected_dataset = st.selectbox('Escolha o dataset', dataset_options)
+        return selected_dataset
     def run(self) -> None:
         """
         Executa o dashboard Streamlit para visualizar os relatórios de ações de dados.
@@ -80,7 +82,7 @@ class ReportsDashboard:
                 st.dataframe(df)
 
                 dataset_options = [detail[0] for detail in preprocessing_details]
-                selected_dataset = st.selectbox('Escolha o dataset', dataset_options)
+                selected_dataset = self.__select_dataset(dataset_options)
 
                 if selected_dataset:
                     ai_actions = self.__get_ai_actions_by_dataset(selected_dataset)
