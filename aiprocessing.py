@@ -198,7 +198,7 @@ class AiProcessing:
                 )
                 session.add(ai_action)
                 session.commit()
-                st.write("Métricas salvas com sucesso!")
+                st.write("Informações salvas com sucesso!")
             else:
                 st.error("Nenhuma ação primária encontrada para associar.")
         except Exception as e:

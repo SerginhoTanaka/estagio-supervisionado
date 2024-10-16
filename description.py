@@ -76,10 +76,6 @@ class Description:
 
             return feature_importance_df
 
-        except ValueError as ve:
-            st.error(f"Erro de valor: {ve}")
-        except KeyError as ke:
-            st.error(f"Erro de chave: {ke}")
-        except Exception as e:
-            st.error(f"Ocorreu um erro ao calcular a importância das features: {e}")
-            return None
+        except Exception as ve:
+            st.error(f"Não foi possível calcular a importância das features com a coluna alvo {self.target_column}")
+  

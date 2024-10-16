@@ -78,7 +78,6 @@ class Dashboard:
             session.add(new_action)
             session.commit()
             session.close()
-            st.write(f"Ação '{action_name}' salva com sucesso!")
         except Exception as e:
             print(f"Erro ao salvar a ação: {e}")
         

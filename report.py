@@ -103,10 +103,10 @@ class ReportsDashboard:
 
                         df_ai = pd.DataFrame(ai_actions_data)
                         df_metrics = pd.DataFrame(metrics)
-                        st.subheader('Detalhes das Ações de IA')
+                        st.subheader('Detalhes das Ações de IA e Métricas')
                         st.dataframe(df_ai)
 
-                        st.subheader('Métricas')
+                        st.subheader('Valores Previstos e Reais')
                         st.dataframe(df_metrics)
 
                         from main import Dashboard
