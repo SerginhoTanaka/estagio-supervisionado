@@ -185,24 +185,24 @@ class Dashboard:
             
             csv: bytes = self.convert_df(df)
             st.download_button(
-                label="Baixar Planilha",
+                label="Baixar base",
                 data=csv,
                 file_name=filename,
                 mime="text/csv"
             )
         except Exception as e:
-            st.error(f"Erro ao baixar a planilha: {e}")
+            st.error(f"Erro ao baixar a base: {e}")
 
     def __merge_spreadsheets(self) -> None:
         """
         Merge two spreadsheets based on user-selected keys, remove values above 50000
         from selected columns, and remove duplicated columns.
         """
-        st.subheader("Carregar Planilha 1:")
-        file1: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload planilha 1", type="csv", key="file1")
+        st.subheader("Carregar base 1:")
+        file1: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload base 1", type="csv", key="file1")
 
-        st.subheader("Carregar Planilha 2:")
-        file2: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload planilha 2", type="csv", key="file2")
+        st.subheader("Carregar base 2:")
+        file2: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload base 2", type="csv", key="file2")
 
         if file1 is not None and file2 is not None:
             try:
@@ -210,19 +210,19 @@ class Dashboard:
                 data2: pd.DataFrame = pd.read_csv(file2)
 
                 # Selecionar as chaves de junção para cada base
-                st.subheader("Selecionar chave de junção para cada planilha:")
-                key_column1: str = st.selectbox("Selecionar chave de junção para Planilha 1", data1.columns)
-                key_column2: str = st.selectbox("Selecionar chave de junção para Planilha 2", data2.columns)
+                st.subheader("Selecionar chave de junção para cada base:")
+                key_column1: str = st.selectbox("Selecionar chave de junção para base 1", data1.columns)
+                key_column2: str = st.selectbox("Selecionar chave de junção para base 2", data2.columns)
 
                 if st.button("Mesclar Bases"):
                     # Remover valores maiores que 50000 das chaves selecionadas
-                    st.write(f"Removendo valores maiores que 50000 da coluna '{key_column1}' na Planilha 1...")
+                    st.write(f"Removendo valores maiores que 50000 da coluna '{key_column1}' na base 1...")
                     data1 = data1[data1[key_column1] <= 50000]
-                    st.write(f"Planilha 1 filtrada: {len(data1)} registros restantes.")
+                    st.write(f"base 1 filtrada: {len(data1)} registros restantes.")
 
-                    st.write(f"Removendo valores maiores que 50000 da coluna '{key_column2}' na Planilha 2...")
+                    st.write(f"Removendo valores maiores que 50000 da coluna '{key_column2}' na base 2...")
                     data2 = data2[data2[key_column2] <= 50000]
-                    st.write(f"Planilha 2 filtrada: {len(data2)} registros restantes.")
+                    st.write(f"base 2 filtrada: {len(data2)} registros restantes.")
 
                     # Realizar a junção dos dados
                     st.write("Mesclando as duas bases...")
@@ -254,7 +254,7 @@ class Dashboard:
                         st.write("O DataFrame está vazio. Nenhum arquivo CSV será gerado.")
             
             except Exception as e:
-                st.error(f"Erro ao processar as planilhas: {e}")
+                st.error(f"Erro ao processar as base: {e}")
 
 
     def __generate_graph(self) -> None:
