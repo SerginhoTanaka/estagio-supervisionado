@@ -122,32 +122,33 @@ class Dashboard:
             
             csv: bytes = self.convert_df(df)
             st.download_button(
-                label="Baixar Planilha",
+                label="Baixar Base",
                 data=csv,
                 file_name=filename,
                 mime="text/csv"
             )
         except Exception as e:
-            st.error(f"Erro ao baixar a planilha: {e}")
+            st.error(f"Erro ao baixar a Base: {e}")
 
     def __merge_spreadsheets(self) -> None:
         """
         Merge two spreadsheets based on user-selected keys.
         """
-        st.subheader("Carregar Planilha 1:")
-        file1: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload planilha 1", type="csv", key="file1")
+        st.subheader("Carregar Base 1:")
+        file1: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload Base 1", type="csv", key="file1")
 
-        st.subheader("Carregar Planilha 2:")
-        file2: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload planilha 2", type="csv", key="file2")
+        st.subheader("Carregar Base 2:")
+        file2: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload Base 2", type="csv", key="file2")
 
         if file1 is not None and file2 is not None:
             try:
                 data1: pd.DataFrame = pd.read_csv(file1)
                 data2: pd.DataFrame = pd.read_csv(file2)
-
-                st.subheader("Selecionar chave de junção para cada planilha:")
-                key_column1: str = st.selectbox("Selecionar chave de junção para Planilha 1", data1.columns)
-                key_column2: str = st.selectbox("Selecionar chave de junção para Planilha 2", data2.columns)
+                int_columns1 = data1.select_dtypes(include='int').columns
+                int_columns2 = data2.select_dtypes(include='int').columns
+                st.subheader("Selecionar chave de junção para cada Base:")
+                key_column1: str = st.selectbox("Selecionar chave de junção para Base 1", int_columns1)
+                key_column2: str = st.selectbox("Selecionar chave de junção para Base 2", int_columns2)
 
                 if st.button("Mesclar Bases"):
                     merged_data: pd.DataFrame = pd.merge(data1, data2, how='inner', left_on=key_column1, right_on=key_column2)
@@ -160,7 +161,7 @@ class Dashboard:
                     else:
                         st.write("O DataFrame está vazio. Nenhum arquivo CSV será gerado.")
             except Exception as e:
-                st.error(f"Erro ao processar as planilhas: {e}")
+                st.error(f"Erro ao processar as Bases: {e}")
 
     def __generate_graph(self) -> None:
         """
