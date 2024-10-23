@@ -18,6 +18,17 @@ engine = create_engine('sqlite:///actions.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
+st.markdown(
+    """
+    <style>
+    [data-testid="stMarkdownContainer"] p {
+        font-size: 20px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 class Dashboard:
     """
     A class for data preprocessing and visualization.
@@ -50,10 +61,8 @@ class Dashboard:
             # Menu lateral
             selected_option = option_menu(
                 "",  # Deixa o título vazio, já que a imagem está no topo
-                ["Upload de arquivo", "Visualizar Arquivos", "Pré-processamento", "Análise sem pré-processamento", "Descrição", 
-                "Processamento com IA",  "Mesclar Bases", "Relatórios"], 
-                icons=[ 'file-earmark-arrow-up', 'search', 'gear', 'sliders', 'card-text', 'clipboard-data', 
-                    'union', 'clipboard-pulse'], 
+                ["Upload de arquivo", "Pré-processamento","Processamento com IA", "Visualizar Arquivos",  "Análise sem pré-processamento", "Descrição",  "Mesclar Bases", "Relatórios"], 
+                icons=[ 'file-earmark-arrow-up','gear','clipboard-data', 'search' , 'sliders', 'card-text', 'union', 'clipboard-pulse'], 
                 menu_icon="tree", 
                 default_index=0,
             )
@@ -85,6 +94,7 @@ class Dashboard:
 
         # Processamento com IA
         if selected_option == "Processamento com IA":
+          
             processed_data, method = result
             if method == 'Regressão':
                 st.write("aguarde, realizando a regressão")
@@ -122,6 +132,7 @@ class Dashboard:
         """
         Get the data for AI processing.
         """
+        self.aiprocessing.remove_coluna()
         if 'processed_data' in st.session_state and st.session_state['processed_data'] is not None:
             return st.session_state['processed_data'], st.session_state.get('method', None)
 
@@ -129,8 +140,6 @@ class Dashboard:
 
         st.session_state['processed_data'] = processed_data
         st.session_state['method'] = method
-
-        st.write(f"Processed data: {processed_data}, Method: {method}")  # Add this to ensure data and method are passed properly.
 
         return processed_data, method
 

@@ -59,10 +59,19 @@ class AiProcessing:
         except Exception as e:
             st.error(f"Ocorreu um erro durante a execução: {e}")
             return None, None
+    def remove_coluna(self) -> None:
+        colunas = st.multiselect("Remova colunas", self.data.columns)
+        if st.button("Remover"):
+            # Atualiza a base principal com a nova versão dos dados após remover as colunas
+            self.data = self.data.drop(columns=colunas)
+            st.session_state['data'] = self.data  # Atualiza a base principal no session_state
+            st.write(f"Colunas removidas: {colunas}")
+            st.dataframe(self.data)  # Exibe a base atualizada
     def regression(self) -> None:
         """
         Método genérico para executar a regressão.
         """
+        
         try:
             # Show only "Decision Tree" as enabled option for regression, others are visually disabled.
             regression_models = ['Decision Tree (available)', 'Linear Regression (disabled)', 'SVR (disabled)', 'Random Forest (disabled)']
@@ -102,7 +111,6 @@ class AiProcessing:
                     self.__train_and_evaluate(model, is_regression=False)
                 else:
                     st.error("Por favor, selecione o modelo Decision Tree.")
-
         except Exception as e:
             st.error(f"Erro na classificação: {e}")
 
