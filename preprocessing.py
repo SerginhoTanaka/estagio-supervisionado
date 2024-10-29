@@ -171,22 +171,35 @@ class Preprocessing:
     def __show(self, new_data: pd.DataFrame) -> None:
         """
         Exibe o DataFrame antes e depois da aplicação dos métodos de limpeza e normalização.
-
-        Args:
-            new_data (pd.DataFrame): DataFrame após aplicação dos métodos.
         """
+        # Verifica se o arquivo já foi salvo anteriormente
+        if 'saved_file_path' in st.session_state and os.path.exists(st.session_state['saved_file_path']):
+            st.write("Dados carregados do arquivo salvo.")
+            saved_data = pd.read_csv(st.session_state['saved_file_path'])
+            st.write(saved_data.head(3))
+            return  # Sai da função se o DataFrame já estiver carregado
+
         st.write("Tabela original:")
         st.write(self.data.head(3))  # Exibe apenas 3 amostras
         st.write("Tabela após pré-processamento (apenas 3 amostras):")
         st.write(new_data.head(3))  # Exibe apenas 3 amostras
-        file_name = st.text_input("Digite o nome do arquivo CSV:",value="base")
 
-# Garante que o nome do arquivo termine com '.csv'
+        file_name = st.text_input("Digite o nome do arquivo CSV:", value="base")
+
         if not file_name.endswith('.csv'):
-            file_name += '.csv'        
+            file_name += '.csv'
+        file_path = f"/tmp/{file_name}"  # Caminho temporário para salvar
+
         if st.button('Nomeie e salve'):
-            Dashboard().save_df(new_data, file_name)
+            # Salva o DataFrame em um arquivo temporário e armazena o caminho no session_state
+            new_data.to_csv(file_path, index=False)
+            st.session_state['saved_file_path'] = file_path
+            st.success("Arquivo salvo e caminho atualizado no session_state.")
+        
         Dashboard().download_spreadsheet(new_data, "preprocessed_data.csv")
+
+
+
 
     def __clean_null(self, df: pd.DataFrame) -> pd.DataFrame: 
         """

@@ -32,19 +32,20 @@ class AiProcessing:
         self.ai: Optional[str] = None
         self.normalized_data: Optional[pd.DataFrame] = processed_data
         self.target_column: Optional[str] = None
-
+        self.selected_method = None 
     def run(self) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
         """
         Main method to run preprocessing and AI model selection flow.
         """
         try:
-            method: str = st.selectbox('Selecione um modelo de IA:', ('Selecione...', 'Regressão', 'Classificação'), key='model_selection')
-            st.write(f"Method selected: {method}")  # Add this to ensure the selected method is passed.
-            
-            if method == 'Selecione...':
-                st.write("Por favor, selecione um método válido.")
-                return None, None
+            # Toggle para escolher entre Regressão e Classificação
+            self.selected_method = st.radio("Selecione o tipo de processamento:", 
+                                            options=["Classificação", "Regressão"], 
+                                            index=0, 
+                                            key="process_type")
 
+            st.write(f"Método selecionado: {self.selected_method}")
+            
             categorical_columns: List[str] = self.data.select_dtypes(include=['object']).columns.tolist()
 
             if categorical_columns:
@@ -52,13 +53,14 @@ class AiProcessing:
                 preprocessing = Preprocessing(self.data)
                 final_data: pd.DataFrame = preprocessing.preprocess_categorical_data(self.data, numerical_df)
                 self.data = final_data
-                return final_data, method
+                return final_data, self.selected_method
             else:
-                return self.data, method
+                return self.data, self.selected_method
 
         except Exception as e:
             st.error(f"Ocorreu um erro durante a execução: {e}")
             return None, None
+        
     def remove_coluna(self) -> None:
         colunas = st.multiselect("Remova colunas", self.data.columns)
         if st.button("Remover"):
@@ -69,45 +71,38 @@ class AiProcessing:
             st.dataframe(self.data)  # Exibe a base atualizada
     def regression(self) -> None:
         """
-        Método genérico para executar a regressão.
+        Exibe as opções de regressão e executa o modelo selecionado.
         """
-        
         try:
-            # Show only "Decision Tree" as enabled option for regression, others are visually disabled.
             regression_models = ['Decision Tree (available)', 'Linear Regression (disabled)', 'SVR (disabled)', 'Random Forest (disabled)']
-
-            self.ai = st.selectbox('Selecione um modelo de regressão:', options=regression_models)
+            self.ai = st.selectbox('Selecione um modelo de regressão:', options=regression_models, key="regression_model")
             
-            self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', self.data.columns)
+            # Exibe a seleção da coluna alvo
+            self.target_column = st.selectbox('Selecione a coluna alvo para a regressão:', self.data.columns, key="regression_target")
 
-            # Button to trigger regression
             if st.button('Executar Regressão'):
                 if 'Decision Tree' in self.ai:
-                    model = DecisionTreeClassifier()  # Decision Tree is always chosen
+                    model = DecisionTreeClassifier()  # Usa Decision Tree como exemplo
                     self.__train_and_evaluate(model, is_regression=True)
                 else:
                     st.error("Por favor, selecione o modelo Decision Tree.")
-
         except Exception as e:
             st.error(f"Erro na regressão: {e}")
 
     def classification(self) -> None:
         """
-        Método genérico para executar a classificação.
+        Exibe as opções de classificação e executa o modelo selecionado.
         """
         try:
-            # Show only "Decision Tree" as enabled option for classification, others are visually disabled.
             classification_models = ['Decision Tree (available)', 'Logistic Regression (disabled)', 'KNN (disabled)', 'Random Forest (disabled)']
-
-            self.ai = st.selectbox('Selecione um modelo de classificação:', options=classification_models)
+            self.ai = st.selectbox('Selecione um modelo de classificação:', options=classification_models, key="classification_model")
             
-            self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', self.data.columns)
+            # Exibe a seleção da coluna alvo
+            self.target_column = st.selectbox('Selecione a coluna alvo para a classificação:', self.data.columns, key="classification_target")
 
-            # Button to trigger classification
             if st.button('Executar Classificação'):
                 if 'Decision Tree' in self.ai:
-                    st.write(f"Modelo de Classificação: {self.ai}, Coluna Alvo: {self.target_column}")
-                    model = DecisionTreeClassifier()  # Decision Tree is always chosen
+                    model = DecisionTreeClassifier()  # Usa Decision Tree como exemplo
                     self.__train_and_evaluate(model, is_regression=False)
                 else:
                     st.error("Por favor, selecione o modelo Decision Tree.")

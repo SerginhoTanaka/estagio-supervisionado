@@ -130,16 +130,16 @@ class Dashboard:
         
     def __process_with_ai(self):
         """
-        Get the data for AI processing.
+        Processa os dados com IA, mostrando a interface adequada com base no tipo selecionado.
         """
         self.aiprocessing.remove_coluna()
-        if 'processed_data' in st.session_state and st.session_state['processed_data'] is not None:
-            return st.session_state['processed_data'], st.session_state.get('method', None)
 
+        # Recupera o dado processado e o método (Classificação ou Regressão)
         processed_data, method = self.aiprocessing.run()
-
         st.session_state['processed_data'] = processed_data
         st.session_state['method'] = method
+
+       
 
         return processed_data, method
 
