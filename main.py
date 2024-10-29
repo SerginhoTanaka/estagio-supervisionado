@@ -10,7 +10,7 @@ from report import ReportsDashboard
 from file_viewer import FileViewer
 
 from streamlit_option_menu import option_menu
-#from drive_upload import GoogleDriveUploader
+from drive_upload import GoogleDriveUploader
 import streamlit_antd_components as sac
 import extra_streamlit_components as stx
 
@@ -77,7 +77,7 @@ class Dashboard:
             "Mesclar Bases": self.__merge_spreadsheets,
             "Relatórios": ReportsDashboard().run,
             "Visualizar Arquivos": FileViewer().visualizar_arquivos,
-            #"Upload do Drive": GoogleDriveUploader(self).display
+            "Upload do Drive": GoogleDriveUploader(self).display
         }
 
         # Executar a função correspondente ao item selecionado
@@ -172,7 +172,7 @@ class Dashboard:
 
         elif upload_option == 'Upload do Drive':
             # Executa a funcionalidade para upload do Google Drive
-            #GoogleDriveUploader(self).display()
+            GoogleDriveUploader(self).display()
             print("google")
 
     def save_df(self, data: pd.DataFrame, df_name) -> None:
@@ -309,5 +309,5 @@ class Dashboard:
 
 if __name__ == '__main__':
     dashboard = Dashboard()
-    #uploader = GoogleDriveUploader(dashboard)  
+    uploader = GoogleDriveUploader(dashboard)  
     dashboard.run()
