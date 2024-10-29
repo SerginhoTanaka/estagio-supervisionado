@@ -10,7 +10,6 @@ from report import ReportsDashboard
 from file_viewer import FileViewer
 
 from streamlit_option_menu import option_menu
-from drive_upload import GoogleDriveUploader
 import streamlit_antd_components as sac
 import extra_streamlit_components as stx
 
@@ -46,11 +45,13 @@ class Dashboard:
         self.aiprocessing: AiProcessing = AiProcessing(self.data,self.processed_data)
         if 'action_saved' not in st.session_state:
             st.session_state['action_saved'] = False
+            
 
     def run(self) -> None:
         """
         Run the dashboard.
         """
+        from drive_upload import GoogleDriveUploader
 
         image_url = "https://a10br.com/wp-content/uploads/2022/08/Imagens-site-A10_Integrada.png"
 
@@ -172,6 +173,8 @@ class Dashboard:
 
         elif upload_option == 'Upload do Drive':
             # Executa a funcionalidade para upload do Google Drive
+            from drive_upload import GoogleDriveUploader
+
             GoogleDriveUploader(self).display()
             print("google")
 
@@ -309,5 +312,7 @@ class Dashboard:
 
 if __name__ == '__main__':
     dashboard = Dashboard()
+    from drive_upload import GoogleDriveUploader
+
     uploader = GoogleDriveUploader(dashboard)  
     dashboard.run()
