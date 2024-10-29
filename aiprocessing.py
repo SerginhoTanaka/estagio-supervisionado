@@ -161,7 +161,7 @@ class AiProcessing:
 
             if is_regression:
                 mse: float = mean_squared_error(y_test, predictions)
-                st.write(f'MSE: {mse}')
+                st.write(f'Métrica de avaliação de erro (MSE): {mse}')
                 metrics = {'mse': mse}
             else:
                 accuracy: float = accuracy_score(y_test, predictions)

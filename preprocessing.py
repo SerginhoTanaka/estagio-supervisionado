@@ -25,8 +25,8 @@ class Preprocessing:
             Optional[pd.DataFrame]: DataFrame pré-processado, ou None se nenhuma ação for realizada.
         """
 
-        st.title("Pré processamento")
-        st.write("Realize as configurações de Pré processamento")
+        st.title("Pré-processamento")
+        st.write("Realize as configurações de Pré-processamento")
 
         self.select_preprocessing_method()
         self.select_cleaning_method()
@@ -123,7 +123,7 @@ class Preprocessing:
                     scaled_data = scaler.fit_transform(numerical_df[[col]])
                     numerical_df[col] = scaled_data
                     st.write(f"Coluna {col} normalizado pelo método {self.scaler}:")
-                    with st.expander("Informações sobre o MaxAbsScaler"):
+                    with st.expander(f"Informações sobre o {self.scaler}"):
                         st.write(numerical_df[[col]])
             else:
                 st.write("Não há colunas numéricas para normalização.")
