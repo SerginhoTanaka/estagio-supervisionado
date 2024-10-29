@@ -16,7 +16,7 @@ class Dashboard:
     """
 
     def __init__(self) -> None:
-        self.data: pd.DataFrame = st.session_state.get('data', pd.DataFrame())
+        self.data: pd.DataFrame = st.session_state.get('data', None)
         self.processed_data: pd.DataFrame = st.session_state.get('processed_data', None)
         self.dataset_name: str = st.session_state.get('dataset_name', 'Desconhecido')
 
@@ -37,6 +37,10 @@ class Dashboard:
             "Selecione uma opção",
             ["Pré-processamento", "Análise sem pré-processamento", "Descrição", "Processamento com IA", "Upload de arquivo", "Mesclar Bases", "Relatórios"]
         )
+        if self.data is not None:
+            st.sidebar.write(f"Base de dados carregada:", self.dataset_name)
+        else:
+            st.sidebar.write(f"Nenhuma base de dados carregada")
         options: dict[str, callable] = {
             "Pré-processamento": self.preprocessor.run,
             "Análise sem pré-processamento": self.__generate_graph,
