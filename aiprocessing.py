@@ -177,9 +177,8 @@ class AiProcessing:
             results_df.reset_index(drop=True, inplace=True)
             st.write('Resultados:')
             st.dataframe(results_df, use_container_width=True)
-            
-            if st.button('Salvar Dados'):
-                self.__save_metrics_to_db(metrics)
+ 
+            self.__save_metrics_to_db(metrics)
 
         except Exception as e:
             st.error(f"Erro durante o treinamento e avaliação: {e}")
@@ -191,6 +190,7 @@ class AiProcessing:
         try:
             print(metrics)
             primary_action = session.query(TBPrimaryActions).order_by(TBPrimaryActions.id.desc()).first()
+            print("Entrei aqui22")
 
             if primary_action:
                 ai_action = TBAiActions(
