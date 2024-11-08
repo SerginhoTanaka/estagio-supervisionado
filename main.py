@@ -207,8 +207,8 @@ class Dashboard:
 
     def __merge_spreadsheets(self) -> None:
         """
-        Merge two spreadsheets based on user-selected keys, remove values above 50000
-        from selected columns, and remove duplicated columns.
+        Merge two spreadsheets based on user-selected keys, with options for simple or compound keys,
+        optionally remove values above 50000 from 'cod_produtor' if selected, and show unique counts.
         """
         st.subheader("Carregar base 1:")
         file1: Optional[st.uploaded_file_manager.UploadedFile] = st.file_uploader("Upload base 1", type="csv", key="file1")
@@ -221,53 +221,96 @@ class Dashboard:
                 data1: pd.DataFrame = pd.read_csv(file1)
                 data2: pd.DataFrame = pd.read_csv(file2)
 
-                # Selecionar as chaves de junção para cada base
-                st.subheader("Selecionar chave de junção para cada base:")
-                key_column1: str = st.selectbox("Selecionar chave de junção para base 1", data1.columns)
-                key_column2: str = st.selectbox("Selecionar chave de junção para base 2", data2.columns)
+                # Exibir dimensões de cada tabela antes da junção
+                st.write(f"Dimensões da Base 1: {data1.shape}")
+                st.write(f"Dimensões da Base 2: {data2.shape}")
+
+                # Escolher entre chave simples ou composta
+                st.subheader("Escolha o tipo de chave de junção:")
+                join_type = st.selectbox("Selecione o tipo de chave para a junção:", ["Simples", "Composta"])
+
+                if join_type == "Simples":
+                    # Configuração para chave simples
+                    st.subheader("Selecionar chaves de junção (chave simples):")
+                    key1_col = st.selectbox("Base 1 - Chave", ["Nenhuma"] + list(data1.columns))
+                    key2_col = st.selectbox("Base 2 - Chave", ["Nenhuma"] + list(data2.columns))
+
+                    if "Nenhuma" in [key1_col, key2_col]:
+                        st.warning("Por favor, selecione colunas válidas para a chave simples em ambas as bases.")
+                        return
+
+                    left_on = [key1_col]
+                    right_on = [key2_col]
+
+                else:
+                    # Configuração para chave composta
+                    st.subheader("Selecionar chaves de junção (chave composta):")
+                    
+                    # Base 1 - Seleção para 'codigo' e 'safra'
+                    key1_codigo = st.selectbox("Base 1 - Código", ["Nenhuma"] + list(data1.columns))
+                    key1_safra = st.selectbox("Base 1 - Safra", ["Nenhuma"] + list(data1.columns))
+                    
+                    # Base 2 - Seleção para 'codigo' e 'safra'
+                    key2_codigo = st.selectbox("Base 2 - Código", ["Nenhuma"] + list(data2.columns))
+                    key2_safra = st.selectbox("Base 2 - Safra", ["Nenhuma"] + list(data2.columns))
+
+                    left_on = [key1_codigo, key1_safra]
+                    right_on = [key2_codigo, key2_safra]
+
+                    if "Nenhuma" in left_on or "Nenhuma" in right_on:
+                        st.warning("Por favor, selecione colunas válidas para 'Código' e 'Safra' em ambas as bases.")
+                        return
+
+                # Opção de filtragem acima de 50000
+                apply_filter = st.checkbox("Remover valores maiores que 50000 em 'cod_produtor'")
 
                 if st.button("Mesclar Bases"):
-                    # Remover valores maiores que 50000 das chaves selecionadas
-                    st.write(f"Removendo valores maiores que 50000 da coluna '{key_column1}' na base 1...")
-                    data1 = data1[data1[key_column1] <= 50000]
-                    st.write(f"base 1 filtrada: {len(data1)} registros restantes.")
-
-                    st.write(f"Removendo valores maiores que 50000 da coluna '{key_column2}' na base 2...")
-                    data2 = data2[data2[key_column2] <= 50000]
-                    st.write(f"base 2 filtrada: {len(data2)} registros restantes.")
-
                     # Realizar a junção dos dados
                     st.write("Mesclando as duas bases...")
                     merged_data: pd.DataFrame = pd.merge(
                         data1,
                         data2,
-                        left_on=key_column1,
-                        right_on=key_column2,
-                        how='inner'  # Realizando junção interna para remover linhas sem correspondência
+                        left_on=left_on,
+                        right_on=right_on,
+                        how='inner'
                     )
-                    st.write(f"Bases mescladas com sucesso! {len(merged_data)} registros resultantes.")
+                    
+                    if merged_data.empty:
+                        st.warning("A junção resultou em 0 registros. Verifique as chaves selecionadas.")
+                        return
+                    
+                    st.write(f"Dimensões após junção: {merged_data.shape}")
                     st.write(merged_data.head())
+                    
+                    # Aplicar o filtro acima de 50000 em 'cod_produtor' se selecionado
+                    if apply_filter:
+                        st.write("Aplicando filtro para remover valores maiores que 50000 em 'cod_produtor'...")
+                        merged_data = merged_data[merged_data['cod_produtor'] <= 50000]
+                        st.write(f"Dimensões após filtro: {merged_data.shape}")
 
-                    # Remover colunas duplicadas
+                    # Contagem de códigos únicos
+                    unique_cod_produtor_count = merged_data['cod_produtor'].nunique()
+                    st.write(f"Número de códigos únicos (cod_produtor) após filtragem: {unique_cod_produtor_count}")
+                    
+                    # Remover colunas duplicadas após junção e filtragem
                     st.write("Removendo colunas duplicadas...")
                     duplicated_columns = merged_data.columns[merged_data.T.duplicated()]
                     merged_data = merged_data.loc[:, ~merged_data.T.duplicated()]
-                    st.write(f"\nColunas duplicadas removidas: {list(duplicated_columns)}")
+                    st.write(f"Colunas duplicadas removidas: {list(duplicated_columns)}")
                     st.write(f"Dimensões finais após remover colunas duplicadas: {merged_data.shape}")
 
-                    # Exibir os dados resultantes
-                    st.write("Dados finais após junção e remoção de duplicatas:")
+                    # Exibir os dados resultantes após todas as modificações
+                    st.write("Dados finais após junção, filtragem, e remoção de duplicatas:")
                     st.write(merged_data.head())
 
                     # Baixar o resultado final
                     if not merged_data.empty:
-                        self.download_spreadsheet(merged_data, "classif_prod_merged.csv")
+                        self.download_spreadsheet(merged_data, "filtered_merged_data.csv")
                     else:
                         st.write("O DataFrame está vazio. Nenhum arquivo CSV será gerado.")
             
             except Exception as e:
-                st.error(f"Erro ao processar as base: {e}")
-
+                st.error(f"Erro ao processar as bases: {e}")
 
     def __generate_graph(self) -> None:
         """
